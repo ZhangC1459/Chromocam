@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.chromocam"
+    android:installLocation="auto"
     android:versionCode="0"
-    android:versionName="0.1" android:installLocation="auto">
+    android:versionName="0.1" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -22,24 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-	  <activity
-	            android:name=".Archives"
-	            android:label="@string/app_name"
-	            android:parentActivityName="com.chromocam.Events">
-	            <!--  Parent Activity meta-data for API level 4+ -->
-	            <meta-data
-	                android:name="android.support.PARENT_ACTIVITY"
-	           		android:value="com.chromocam.Events"></meta-data>
-	        </activity>
-	        <activity
-	            android:name=".Live"
-	            android:label="@string/app_name"
-	            android:parentActivityName="com.chromocam.Events">
-	            <!--  Parent Activity meta-data for API level 4+ -->
-	            <meta-data
-	                android:name="android.support.PARENT_ACTIVITY"
-	           		android:value="com.chromocam.Events"></meta-data>
-	        </activity>
-	    </application>
+    </application>
 
 </manifest>

@@ -3,6 +3,6 @@
     tools:context="com.chromocam.Events" >
     <item android:id="@+id/action_settings"
         android:title="@string/action_settings"
-        android:showAsAction="never"/>"
+        android:showAsAction="never" />"
 
 </menu>
