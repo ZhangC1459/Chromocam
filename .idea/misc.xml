@@ -42,7 +42,7 @@
     <entry_points version="2.0" />
   </component>
   <component name="IdProvider" IDEtalkID="67F3A7A2419A421B8B13E4692B06FF32" />
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="Android 4.4.2 Google APIs" project-jdk-type="Android SDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="ProjectType">
