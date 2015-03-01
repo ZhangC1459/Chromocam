@@ -2,21 +2,22 @@ package com.chromocam.chromocam;
 
 import android.app.ActionBar;
 import android.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
     ActionBar.Tab events, archives, livestream;
     Fragment eventTab = new EventListTab();
-    Fragment archiveTab = new EventListTab();
+    Fragment archiveTab = new ArchiveListTab();
     Fragment livestreamTab = new LiveStreamTab();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         ActionBar actionBar = getActionBar();
 
@@ -57,6 +58,7 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            //openSettings();
             return true;
         }
 
