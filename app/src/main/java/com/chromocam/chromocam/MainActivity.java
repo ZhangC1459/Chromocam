@@ -18,6 +18,7 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         ActionBar actionBar = getActionBar();
 
         //Hide Actionbar Icon
@@ -57,6 +58,7 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            //openSettings();
             return true;
         }
 
