@@ -23,7 +23,6 @@ public class MainActivity extends Activity {
 
         //Hide Actionbar Icon
         actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayShowTitleEnabled(false);
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
         //Set Tab Titles
