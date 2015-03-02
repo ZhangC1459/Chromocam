@@ -5,7 +5,7 @@
 
     android:padding="6dip">
 
-    <ImageView
+    <!--<ImageView
         android:id="@+id/thumbnail"
         android:scaleType="centerInside"
         android:layout_width="75dp"
@@ -13,23 +13,23 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="6dip"
-    />
+    />-->
 
 
     <TextView
         android:id="@+id/ID"
         android:layout_width="fill_parent"
         android:layout_height="26dip"
-        android:layout_toRightOf="@id/thumbnail"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/eventID"/>
+       <!-- android:layout_toRightOf="@id/thumbnail"-->
     <TextView
         android:id="@+id/dateTime"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/thumbnail"
         android:layout_below="@id/ID"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:singleLine="true"
         android:text="@string/dateTime"/>
+    <!--android:layout_toRightOf="@id/thumbnail"-->
 </RelativeLayout>

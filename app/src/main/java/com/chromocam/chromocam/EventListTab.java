@@ -41,6 +41,7 @@ public class EventListTab extends ListFragment {
         eventItemList.add(new EventItem("03/01/2015 7:03PM", 2));
         eventItemList.add(new EventItem("03/01/2015 7:03PM", 3));
         mAdapter = new EventListAdapter(getActivity(), eventItemList);
+        //setListAdapter(mAdapter);
     }
 
 

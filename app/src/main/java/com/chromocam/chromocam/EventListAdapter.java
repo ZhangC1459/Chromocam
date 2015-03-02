@@ -26,7 +26,7 @@ public class EventListAdapter extends ArrayAdapter {
     private class ViewHolder{
         TextView ID;
         TextView dateTime;
-        ImageView thumbnail;
+        //ImageView thumbnail;
     }
 
     /**
@@ -45,17 +45,12 @@ public class EventListAdapter extends ArrayAdapter {
         // we want to support a grid or list view.
         LayoutInflater mInflater = (LayoutInflater) context
                 .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null) {
-            if(useList){
-                viewToUse = mInflater.inflate(R.layout.event_item_list, null);
-            } else {
-                viewToUse = mInflater.inflate(R.layout.event_item_list, null);
-            }
-
+        if(convertView == null) {
+            viewToUse = mInflater.inflate(R.layout.event_item_list, null);
             holder = new ViewHolder();
-            holder.ID = (TextView)viewToUse.findViewById(R.id.ID);
-            holder.dateTime = (TextView)viewToUse.findViewById(R.id.dateTime);
-            holder.thumbnail = (ImageView)viewToUse.findViewById(R.id.thumbnail);
+            holder.ID = (TextView) viewToUse.findViewById(R.id.ID);
+            holder.dateTime = (TextView) viewToUse.findViewById(R.id.dateTime);
+            //holder.thumbnail = (ImageView)viewToUse.findViewById(R.id.thumbnail);
             viewToUse.setTag(holder);
         } else {
             viewToUse = convertView;
@@ -64,7 +59,7 @@ public class EventListAdapter extends ArrayAdapter {
 
         holder.ID.setText(item.getEventID());
         holder.dateTime.setText(item.getEventID());
-        holder.thumbnail.setImageURI(item.getImageURI());
+        //holder.thumbnail.setImageURI(item.getImageURI());
         return viewToUse;
     }
 }
