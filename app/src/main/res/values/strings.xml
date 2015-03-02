@@ -6,4 +6,7 @@
     <string name="event">Events</string>
     <string name="archive">Archives</string>
     <string name="stream">Livestream</string>
+    <string name="thumbnail">thumbnail</string>
+    <string name="eventID">ID Number</string>
+    <string name="dateTime">Date and Time</string>
 </resources>
