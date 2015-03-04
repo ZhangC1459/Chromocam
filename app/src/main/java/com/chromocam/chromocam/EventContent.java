@@ -2,6 +2,7 @@ package com.chromocam.chromocam;
 
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.widget.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,10 +19,10 @@ import java.util.Map;
 
 public class EventContent{
 
-    public static List<EventItem> ITEMS = new ArrayList<EventItem>();
-    public static Map<String, EventItem> ITEM_MAP = new HashMap<String, EventItem>();
+    public List<EventItem> ITEMS = new ArrayList<EventItem>();
+    public Map<String, EventItem> ITEM_MAP = new HashMap<String, EventItem>();
 
-    static {
+    {
         JSONObject test1 = new JSONObject();
         try {
             test1.put("event_id", "62");
@@ -32,20 +33,20 @@ public class EventContent{
         addItem(new EventItem(test1));
     }
     //addItem method
-    private static void addItem(EventItem item){
+    private void addItem(EventItem item){
         ITEMS.add(item);
         ITEM_MAP.put(item.imageID, item);
     }
 
     //item representing a piece of content
-    public static class EventItem{
+    public class EventItem{
         public String imageID;
         public String date;
         public String time;
         public Drawable image;
         public String url;
         private String[] temp;
-        //Constructor, accepts a JSONObject from the static method up top
+        //Constructor, accepts a JSONObject from the method up top
         public EventItem(JSONObject input){
             try { //attempts to grab the event id and its timestamp
                 imageID = input.get("event_id").toString();
@@ -77,9 +78,8 @@ public class EventContent{
 
     }
 
-    private static class getFileTask extends AsyncTask<EventItem, Void, Drawable>{
+    private class getFileTask extends AsyncTask<EventItem, Void, Drawable>{
         EventItem item = null;
-
         @Override
         protected Drawable doInBackground(EventItem... item) {
             this.item = item[0];

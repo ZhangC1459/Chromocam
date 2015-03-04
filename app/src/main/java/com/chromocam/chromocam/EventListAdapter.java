@@ -16,22 +16,30 @@ public class EventListAdapter extends ArrayAdapter<EventContent.EventItem> {
         super(context, R.layout.event_item_list, items);
     }
 
+    private class ViewHolder{ //holder object to reduce findViewByID calls
+        TextView imageID;
+        TextView dateTime;
+        ImageView image;
+    }
 
     public View getView(int position, View convertView, ViewGroup parent) {
         EventContent.EventItem item = (EventContent.EventItem)getItem(position);
-
+        ViewHolder holder = null;
+        View viewToUse = null;
         // If there is no view being reused
         if(convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.event_item_list, parent, false);
+            holder = new ViewHolder();
+            holder.imageID = (TextView) convertView.findViewById(R.id.eventID);
+            holder.dateTime = (TextView) convertView.findViewById((R.id.dateTime));
+            holder.image = (ImageView) convertView.findViewById(R.id.thumbnail);
+            convertView.setTag(holder);
         }
-        //Lookup view for data population
-        TextView imageID = (TextView) convertView.findViewById(R.id.eventID);
-        TextView dateAndTime = (TextView) convertView.findViewById((R.id.dateTime));
-        ImageView image = (ImageView) convertView.findViewById(R.id.thumbnail);
+
         //Fill views with data
-        imageID.setText(item.getImageID());
-        dateAndTime.setText(item.getTime() + " - " + item.getDate());
-        image.setImageDrawable(item.getImage());
+        holder.imageID.setText(item.getImageID());
+        holder.dateTime.setText(item.getTime() + " - " + item.getDate());
+        holder.image.setImageDrawable(item.getImage());
 
         return convertView;
 

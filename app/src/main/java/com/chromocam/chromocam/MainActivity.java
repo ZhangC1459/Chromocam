@@ -3,14 +3,16 @@ package com.chromocam.chromocam;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.Activity;
+import android.app.ListFragment;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 
-public class MainActivity extends Activity implements EventListTab.OnFragmentInteractionListener{
+public class MainActivity extends Activity implements EventListTab.OnEventSelectionListener{
     ActionBar.Tab events, archives, livestream;
-    Fragment eventTab = new EventListTab();
+    ListFragment eventTab = new EventListTab();
     Fragment archiveTab = new ArchiveListTab();
     Fragment livestreamTab = new LiveStreamTab();
     @Override
@@ -70,7 +72,7 @@ public class MainActivity extends Activity implements EventListTab.OnFragmentInt
     }
 
     @Override
-    public void onFragmentInteraction(String id) {
+    public void onEventSelection(EventContent.EventItem item) {
 
     }
 }

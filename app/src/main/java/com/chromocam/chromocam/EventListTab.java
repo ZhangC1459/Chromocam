@@ -4,20 +4,16 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.app.ListFragment;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 
 
 public class EventListTab extends ListFragment {
 
 
-    private OnFragmentInteractionListener mListener;
-    private ArrayList eventItemList;
-    private EventListAdapter mAdapter;
-
+    private OnEventSelectionListener mListener;
+    private EventContent content = new EventContent();
     public static EventListTab newInstance() {
         EventListTab fragment = new EventListTab();
         Bundle args = new Bundle();
@@ -35,13 +31,10 @@ public class EventListTab extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //sets adapter to display content using a custom adapter with a custom list view
+        EventListAdapter mAdapter = new EventListAdapter(getActivity(), content.ITEMS);
 
-        eventItemList = new ArrayList();
-        eventItemList.add(new EventItem("03/01/2015 7:03PM", 1));
-        eventItemList.add(new EventItem("03/01/2015 7:03PM", 2));
-        eventItemList.add(new EventItem("03/01/2015 7:03PM", 3));
-        mAdapter = new EventListAdapter(getActivity(), eventItemList);
-        //setListAdapter(mAdapter);
+        setListAdapter(mAdapter);
     }
 
 
@@ -49,7 +42,7 @@ public class EventListTab extends ListFragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (OnEventSelectionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -67,8 +60,8 @@ public class EventListTab extends ListFragment {
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
 
-        EventItem item = (EventItem)this.eventItemList.get(position);
-        Toast.makeText(getActivity(), "Clicked Event ID: " + item.getEventID(), Toast.LENGTH_LONG).show();
+        EventContent.EventItem item = content.ITEMS.get(position);
+        Toast.makeText(getActivity(), "Clicked Event ID: " + item.getImageID(), Toast.LENGTH_LONG).show();
     }
 
     /**
@@ -81,9 +74,8 @@ public class EventListTab extends ListFragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
+    public interface OnEventSelectionListener {
+        public void onEventSelection(EventContent.EventItem item);
     }
 
 }
