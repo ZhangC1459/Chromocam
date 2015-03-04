@@ -10,56 +10,30 @@ import android.widget.TextView;
 import android.app.Activity;
 import java.util.List;
 
-public class EventListAdapter extends ArrayAdapter {
+public class EventListAdapter extends ArrayAdapter<EventContent.EventItem> {
 
-    private Context context;
-    private boolean useList = true;
-
-    public EventListAdapter(Context context, List items) {
-        super(context, android.R.layout.simple_list_item_1, items);
-        this.context = context;
+    public EventListAdapter(Context context, List<EventContent.EventItem> items) {
+        super(context, R.layout.event_item_list, items);
     }
 
-    /**
-     * Holder for the list items.
-     */
-    private class ViewHolder{
-        TextView ID;
-        TextView dateTime;
-        //ImageView thumbnail;
-    }
 
-    /**
-     *
-     * @param position
-     * @param convertView
-     * @param parent
-     * @return
-     */
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder = null;
-        EventItem item = (EventItem)getItem(position);
-        View viewToUse = null;
+        EventContent.EventItem item = (EventContent.EventItem)getItem(position);
 
-        // This block exists to inflate the settings list item conditionally based on whether
-        // we want to support a grid or list view.
-        LayoutInflater mInflater = (LayoutInflater) context
-                .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        // If there is no view being reused
         if(convertView == null) {
-            viewToUse = mInflater.inflate(R.layout.event_item_list, null);
-            holder = new ViewHolder();
-            holder.ID = (TextView) viewToUse.findViewById(R.id.ID);
-            holder.dateTime = (TextView) viewToUse.findViewById(R.id.dateTime);
-            //holder.thumbnail = (ImageView)viewToUse.findViewById(R.id.thumbnail);
-            viewToUse.setTag(holder);
-        } else {
-            viewToUse = convertView;
-            holder = (ViewHolder) viewToUse.getTag();
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.event_item_list, parent, false);
         }
+        //Lookup view for data population
+        TextView imageID = (TextView) convertView.findViewById(R.id.eventID);
+        TextView dateAndTime = (TextView) convertView.findViewById((R.id.dateTime));
+        ImageView image = (ImageView) convertView.findViewById(R.id.thumbnail);
+        //Fill views with data
+        imageID.setText(item.getImageID());
+        dateAndTime.setText(item.getTime() + " - " + item.getDate());
+        image.setImageDrawable(item.getImage());
 
-        holder.ID.setText(item.getEventID());
-        holder.dateTime.setText(item.getEventID());
-        //holder.thumbnail.setImageURI(item.getImageURI());
-        return viewToUse;
+        return convertView;
+
     }
 }
