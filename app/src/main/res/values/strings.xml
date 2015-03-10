@@ -9,4 +9,26 @@
     <string name="thumbnail">thumbnail</string>
     <string name="eventID">ID Number</string>
     <string name="dateTime">Date and Time</string>
+
+    <string name="camera_settings_title">Remote Camera Settings</string>
+    <string name="delay_title">Delay</string>
+    <string name="delay_summary">Seconds to wait after movement has stopped being detected</string>
+    <string name="delay_dialogTitle">Enter value between 1 and 60</string>
+
+    <string name="framerate_title">Framerate</string>
+    <string name="framerate_summary">Camera frames per second</string>
+    <string name="framerate_dialogTitle">Enter value between 1 and 5</string>
+
+    <string name="resolution_title">Resolution</string>
+    <string name="resolution_summary">Pixel Width x Pixel Height</string>
+    <string name="resolution_dialogTitle">Select resolution ratio</string>
+
+    <string name="deadzone_title">Motion Deadzones</string>
+    <string name="deadzone_summary">9 Quadrants can be disabled in detecting motion</string>
+    <string name="deadzone_dialogTitle">Enter digit for each quadrant to be disabled</string>
+
+    <string name="notification_settings_title">Push Notification Settings</string>
+    <string name="notification_settings_subtitle">Movement</string>
+    <string name="notification_settings_summary">Movement detected notifications</string>
+
 </resources>
