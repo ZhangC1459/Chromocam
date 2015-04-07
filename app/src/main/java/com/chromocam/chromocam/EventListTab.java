@@ -74,9 +74,10 @@ public class EventListTab extends ListFragment {
         intent.putExtra("image", b);
         //Adds the calling fragment type to the intent
         intent.putExtra("calling", 1);
+        //Adds the image id for archive/unarchive purposes to the intent
+        intent.putExtra("imageID", item.getImageID());
         //starts the activity
         startActivity(intent);
-        //Toast.makeText(getActivity(), "Clicked Event ID: " + item.getImageID(), Toast.LENGTH_LONG).show();
     }
 
     /**

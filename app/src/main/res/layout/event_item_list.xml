@@ -12,7 +12,7 @@
         android:layout_height="75dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginEnd="6dip"
+        android:layout_marginRight="6dip"
     />
 
 
@@ -22,7 +22,7 @@
         android:layout_height="26dip"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/eventID"
-        android:layout_toEndOf="@id/thumbnail"/>
+        android:layout_toRightOf="@id/thumbnail"/>
     <TextView
         android:id="@+id/dateTime"
         android:layout_width="fill_parent"
@@ -31,5 +31,5 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:singleLine="true"
         android:text="@string/dateTime"
-        android:layout_toEndOf="@id/thumbnail"/>
+        android:layout_toRightOf="@id/thumbnail"/>
 </RelativeLayout>

@@ -76,7 +76,6 @@ public class ArchiveListTab extends ListFragment {
         intent.putExtra("calling", 2);
         //starts the activity
         startActivity(intent);
-        //Toast.makeText(getActivity(), "Clicked Event ID: " + item.getImageID(), Toast.LENGTH_LONG).show();
     }
 
     /**
