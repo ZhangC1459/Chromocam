@@ -72,6 +72,8 @@ public class EventListTab extends ListFragment {
         byte[] b = stream.toByteArray();
         //Adds the bitmap to the intent
         intent.putExtra("image", b);
+        //Adds the calling fragment type to the intent
+        intent.putExtra("calling", 1);
         //starts the activity
         startActivity(intent);
         //Toast.makeText(getActivity(), "Clicked Event ID: " + item.getImageID(), Toast.LENGTH_LONG).show();

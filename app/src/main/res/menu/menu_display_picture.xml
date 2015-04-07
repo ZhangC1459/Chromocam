@@ -5,6 +5,8 @@
         android:showAsAction="never" />
     <item android:id="@+id/action_archive" android:title="Add to Archive"
         android:showAsAction="never"/>
+    <item android:id="@+id/action_unarchive" android:title="Delete from Archive"
+        android:showAsAction="never"/>
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" android:showAsAction="never" />
 </menu>
