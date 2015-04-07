@@ -2,11 +2,7 @@ package com.chromocam.chromocam;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.widget.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,6 +21,8 @@ public class EventContent{
 
     public List<EventItem> ITEMS = new ArrayList<EventItem>();
     public Map<String, EventItem> ITEM_MAP = new HashMap<String, EventItem>();
+    //This "type" variable tells the Content generator which fragment called it, and thus, which
+    // content (archived or events) it should be populating the listView with
     public int type;
     public EventContent(int type){
         this.type = type;
@@ -32,7 +30,6 @@ public class EventContent{
     { //This function will populate the list of Items upon creation of an instance of "EventContent"
         //The method will be to pull the JSON Array from the webserv and iterate through a loop
         //Depending on the calling fragment (Archive or events) it'll throw out non-archived ones
-        //TODO: implement a method for distinguishing between Archive and Event calling fragments
         JSONObject test1 = new JSONObject();
         try {
             test1.put("event_id", "62");
@@ -69,7 +66,8 @@ public class EventContent{
             date = temp[0];
             time = temp[1];
         }
-        //getter methods.  Setters are not needed because none of these fields should change after construction anyways
+        //getter methods.  Setters are not needed because none of these fields should change after
+        // construction anyways
         public String getImageID(){
             return this.imageID;
         }

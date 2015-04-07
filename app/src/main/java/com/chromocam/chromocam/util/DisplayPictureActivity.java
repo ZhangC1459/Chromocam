@@ -1,16 +1,12 @@
 package com.chromocam.chromocam.util;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
-
-import com.chromocam.chromocam.EventContent;
 import com.chromocam.chromocam.R;
 
 public class DisplayPictureActivity extends Activity {
