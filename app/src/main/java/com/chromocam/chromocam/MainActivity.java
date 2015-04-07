@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 
-public class MainActivity extends Activity implements EventListTab.OnEventSelectionListener{
+public class MainActivity extends Activity implements EventListTab.OnEventSelectionListener, ArchiveListTab.OnEventSelectionListener{
     ActionBar.Tab events, archives, livestream;
     ListFragment eventTab = new EventListTab();
     Fragment archiveTab = new ArchiveListTab();
