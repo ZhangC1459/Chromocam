@@ -9,4 +9,6 @@
     <string name="thumbnail">thumbnail</string>
     <string name="eventID">ID Number</string>
     <string name="dateTime">Date and Time</string>
+
+    <string name="title_activity_display_picture">View Image</string>
 </resources>

@@ -39,7 +39,7 @@ public class EventListAdapter extends ArrayAdapter<EventContent.EventItem> {
         //Fill views with data
         holder.imageID.setText(item.getImageID());
         holder.dateTime.setText(item.getTime() + " - " + item.getDate());
-        holder.image.setImageDrawable(item.getImage());
+        holder.image.setImageBitmap(item.getImage());
 
         return convertView;
 

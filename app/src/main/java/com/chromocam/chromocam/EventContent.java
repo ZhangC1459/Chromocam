@@ -1,7 +1,11 @@
 package com.chromocam.chromocam;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.widget.ImageView;
 
 import org.json.JSONArray;
@@ -22,7 +26,10 @@ public class EventContent{
     public List<EventItem> ITEMS = new ArrayList<EventItem>();
     public Map<String, EventItem> ITEM_MAP = new HashMap<String, EventItem>();
 
-    {
+    { //This function will populate the list of Items upon creation of an instance of "EventContent"
+        //The method will be to pull the JSON Array from the webserv and iterate through a loop
+        //Depending on the calling fragment (Archive or events) it'll throw out non-archived ones
+        //TODO: implement a method for distinguishing between Archive and Event calling fragments
         JSONObject test1 = new JSONObject();
         try {
             test1.put("event_id", "62");
@@ -43,7 +50,7 @@ public class EventContent{
         public String imageID;
         public String date;
         public String time;
-        public Drawable image;
+        public Bitmap image;
         public String url;
         private String[] temp;
         //Constructor, accepts a JSONObject from the method up top
@@ -54,7 +61,7 @@ public class EventContent{
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            this.url = "http://i.imgur.com/G6c7F5M.png";
+            this.url = "http://downyhouse.homenet.org:3000/files/" + this.imageID;
             new getFileTask().execute(this);
             date = temp[0];
             time = temp[1];
@@ -72,20 +79,19 @@ public class EventContent{
             return this.time;
         }
 
-        public Drawable getImage(){
+        public Bitmap getImage(){
            return this.image;
         }
-
     }
 
-    private class getFileTask extends AsyncTask<EventItem, Void, Drawable>{
+    private class getFileTask extends AsyncTask<EventItem, Void, Bitmap>{
         EventItem item = null;
         @Override
-        protected Drawable doInBackground(EventItem... item) {
+        protected Bitmap doInBackground(EventItem... item) {
             this.item = item[0];
             try {
                 InputStream is = (InputStream) new URL(item[0].url).getContent();
-                return Drawable.createFromStream(is, "srcname");
+                return BitmapFactory.decodeStream(is);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -95,7 +101,7 @@ public class EventContent{
             }
             return null;
         }
-        protected void onPostExecute(Drawable result){
+        protected void onPostExecute(Bitmap result){
             item.image = result;
         }
 

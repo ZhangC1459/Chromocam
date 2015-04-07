@@ -1,20 +1,27 @@
 package com.chromocam.chromocam;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.app.ListFragment;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.chromocam.chromocam.util.DisplayPictureActivity;
+
+import java.io.ByteArrayOutputStream;
 
 
 public class EventListTab extends ListFragment {
-
-
+    //TODO: Adapt this tab so that it can be used for either Archives or Events
+    private static final String param1 = null;
     private OnEventSelectionListener mListener;
     private EventContent content = new EventContent();
-    public static EventListTab newInstance() {
+    public static EventListTab newInstance(String param) {
         EventListTab fragment = new EventListTab();
         Bundle args = new Bundle();
         fragment.setArguments(args);
@@ -61,7 +68,17 @@ public class EventListTab extends ListFragment {
         super.onListItemClick(l, v, position, id);
 
         EventContent.EventItem item = content.ITEMS.get(position);
-        Toast.makeText(getActivity(), "Clicked Event ID: " + item.getImageID(), Toast.LENGTH_LONG).show();
+        //Intent to call DisplayPictureActivity
+        Intent intent = new Intent(this.getActivity(), DisplayPictureActivity.class);
+        //Encodes the bitmap into an array
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        item.getImage().compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] b = stream.toByteArray();
+        //Adds the bitmap to the intent
+        intent.putExtra("image", b);
+        //starts the activity
+        startActivity(intent);
+        //Toast.makeText(getActivity(), "Clicked Event ID: " + item.getImageID(), Toast.LENGTH_LONG).show();
     }
 
     /**
