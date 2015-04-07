@@ -25,7 +25,10 @@ public class EventContent{
 
     public List<EventItem> ITEMS = new ArrayList<EventItem>();
     public Map<String, EventItem> ITEM_MAP = new HashMap<String, EventItem>();
-
+    public int type;
+    public EventContent(int type){
+        this.type = type;
+    }
     { //This function will populate the list of Items upon creation of an instance of "EventContent"
         //The method will be to pull the JSON Array from the webserv and iterate through a loop
         //Depending on the calling fragment (Archive or events) it'll throw out non-archived ones
