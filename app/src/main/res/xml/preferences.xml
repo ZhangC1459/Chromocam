@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/camera_settings_title">
+        <EditTextPreference
+            android:title="@string/delay_title"
+            android:key="delay_key"
+            android:summary="@string/delay_summary"
+            android:dialogTitle="@string/delay_dialogTitle" />
+
+        <EditTextPreference
+            android:title="@string/framerate_title"
+            android:key="framerate_key"
+            android:summary="@string/framerate_summary"
+            android:dialogTitle="@string/framerate_dialogTitle" />
+
+        <ListPreference
+            android:key="resolution_key"
+            android:title="@string/resolution_title"
+            android:summary="@string/resolution_summary"
+            android:entries="@array/resolution_entries"
+            android:entryValues="@array/resolution_entryvalues"
+            android:dialogTitle="@string/resolution_dialogTitle" />
+
+        <EditTextPreference
+            android:title="@string/deadzone_title"
+            android:key="deadzone_key"
+            android:summary="@string/deadzone_summary"
+            android:dialogTitle="@string/deadzone_dialogTitle" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/notification_settings_title">
+        <SwitchPreference
+            android:key="notification_settings"
+            android:title="@string/notification_settings_subtitle"
+            android:summary="@string/notification_settings_summary" />
+    </PreferenceCategory>
+
+    
+</PreferenceScreen>

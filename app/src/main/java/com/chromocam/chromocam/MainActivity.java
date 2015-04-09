@@ -59,7 +59,7 @@ public class MainActivity extends Activity implements EventListTab.OnEventSelect
     }
 
     private void registerDevice() {
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.registration);
 
         //set Button listener
         this.registerButton = (Button) findViewById(R.id.registerButton);
