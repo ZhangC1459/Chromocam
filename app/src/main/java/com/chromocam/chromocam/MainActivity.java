@@ -54,7 +54,9 @@ public class MainActivity extends Activity implements EventListTab.OnEventSelect
 
 
         //Registration Phase
-        registerDevice();
+        if(!this.deviceRegistered){
+            registerDevice();
+        }
 
     }
 
@@ -66,7 +68,7 @@ public class MainActivity extends Activity implements EventListTab.OnEventSelect
         this.registerButton.setOnClickListener(this);
 
         ((TextView) findViewById(R.id.targetDomain_key)).getEditableText().insert(0, this.targetDomain);
-        ((TextView) findViewById(R.id.targetDomain_text)).getEditableText().insert(0, this.password);
+        ((TextView) findViewById(R.id.password_key)).getEditableText().insert(0, this.password);
     }
 
     public void onClick(View v) {
