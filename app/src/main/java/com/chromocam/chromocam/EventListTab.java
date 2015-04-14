@@ -18,7 +18,7 @@ import java.io.ByteArrayOutputStream;
 public class EventListTab extends ListFragment {
     private static final String param1 = null;
     private OnEventSelectionListener mListener;
-    private EventContent content = new EventContent(1);
+    private EventContent content = new EventContent(0);
     public static EventListTab newInstance(String param) {
         EventListTab fragment = new EventListTab();
         Bundle args = new Bundle();

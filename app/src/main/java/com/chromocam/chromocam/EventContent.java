@@ -3,13 +3,24 @@ package com.chromocam.chromocam;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.Log;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -18,26 +29,26 @@ import java.util.List;
 import java.util.Map;
 
 public class EventContent{
-
+    public JSONArray files;
     public List<EventItem> ITEMS = new ArrayList<EventItem>();
     public Map<String, EventItem> ITEM_MAP = new HashMap<String, EventItem>();
     //This "type" variable tells the Content generator which fragment called it, and thus, which
     // content (archived or events) it should be populating the listView with
-    public int type;
+    public String type;
     public EventContent(int type){
-        this.type = type;
+        this.type = Integer.toString(type);
     }
     { //This function will populate the list of Items upon creation of an instance of "EventContent"
         //The method will be to pull the JSON Array from the webserv and iterate through a loop
         //Depending on the calling fragment (Archive or events) it'll throw out non-archived ones
-        JSONObject test1 = new JSONObject();
         try {
-            test1.put("event_id", "62");
-            test1.put("time_stamp","2015-02-17T21:25:15.000Z");
-        } catch (JSONException e) {
+            getJSONTask task = new getJSONTask();
+            task.execute(new URL("http://downyhouse.homenet.org:3000/files"));
+        } catch (NullPointerException e){
+            Log.d("ERROR", "Null Pointer Exception on files");
+        } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-        addItem(new EventItem(test1));
     }
     //addItem method
     private void addItem(EventItem item){
@@ -106,5 +117,47 @@ public class EventContent{
             item.image = result;
         }
 
+    }
+
+    private class getJSONTask extends AsyncTask<URL, Void, Void>{
+        @Override
+        protected Void doInBackground(URL...u){
+            try{
+                Log.d("NOTIFICATION", "Started JSON loading task");
+                URL url = u[0];
+                InputStream in = url.openConnection().getInputStream();
+                BufferedReader sr = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                StringBuilder res = new StringBuilder();
+
+                String inputStr;
+                while((inputStr = sr.readLine()) != null)
+                    res.append(inputStr);
+                Log.d("NOTIFICATION", "Received string" + res);
+                files = new JSONArray(res.toString());
+                JSONObject row;
+                String fileType;
+                String archiveState;
+                try {
+                    for (int i = 0; i < 10; i++) {
+                        row = files.getJSONObject(i);
+                        fileType = row.getString("file_type");
+                        archiveState = row.getString("archive");
+                        if (fileType.equals("1") && archiveState.equals(type)) {
+                            addItem(new EventItem(row));
+                            Log.d("NOTIFICATION", "added item");
+                        }
+                    }
+                } catch (JSONException e){
+                    e.printStackTrace();
+                } catch (NullPointerException e){
+                    e.printStackTrace();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 }

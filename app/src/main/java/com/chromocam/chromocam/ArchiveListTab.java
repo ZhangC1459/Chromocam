@@ -13,12 +13,14 @@ import android.widget.Toast;
 import com.chromocam.chromocam.util.DisplayPictureActivity;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 
 public class ArchiveListTab extends ListFragment {
     private static final String param1 = null;
     private OnEventSelectionListener mListener;
-    private EventContent content = new EventContent(2);
+    private EventContent content = new EventContent(1);
+
     public static ArchiveListTab newInstance(String param) {
         ArchiveListTab fragment = new ArchiveListTab();
         Bundle args = new Bundle();
