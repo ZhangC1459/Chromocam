@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.app.ListFragment;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.chromocam.chromocam.util.DisplayPictureActivity;
 
@@ -68,16 +70,21 @@ public class EventListTab extends ListFragment {
         Intent intent = new Intent(this.getActivity(), DisplayPictureActivity.class);
         //Encodes the bitmap into an array
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        item.getImage().compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] b = stream.toByteArray();
-        //Adds the bitmap to the intent
-        intent.putExtra("image", b);
-        //Adds the calling fragment type to the intent
-        intent.putExtra("calling", 1);
-        //Adds the image id for archive/unarchive purposes to the intent
-        intent.putExtra("imageID", item.getImageID());
-        //starts the activity
-        startActivity(intent);
+        try {
+            item.getImage().compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byte[] b = stream.toByteArray();
+            //Adds the bitmap to the intent
+            intent.putExtra("image", b);
+            //Adds the calling fragment type to the intent
+            intent.putExtra("calling", 1);
+            //Adds the image id for archive/unarchive purposes to the intent
+            intent.putExtra("imageID", item.getImageID());
+            //starts the activity
+            startActivity(intent);
+        } catch (NullPointerException e){
+            Toast.makeText(this.getActivity(), "ERROR: unable to load image", Toast.LENGTH_LONG).show();
+            Log.d("SERVER-ERROR", "Error: unable to load image.  Is the server up?");
+        }
     }
 
     /**
