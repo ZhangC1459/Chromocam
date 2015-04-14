@@ -20,7 +20,10 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -155,8 +158,11 @@ public class DisplayPictureActivity extends Activity {
                 HttpPost httpPost = new HttpPost(imgUrl);
                 httpPost.setHeader("Content-Type", "application/json; charset=utf-8");
                 //Pass the data to POST
-                httpPost.setEntity(new ByteArrayEntity(keyIDPair.toString().getBytes("UTF8")));
+                StringEntity se = new StringEntity(keyIDPair[0].toString());
+                se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+                httpPost.setEntity(se);
                 //Execute
+                Log.d("TEST", "Sending: " + se);
                 HttpResponse response = httpClient.execute(httpPost);
                 InputStream in = response.getEntity().getContent();
 
