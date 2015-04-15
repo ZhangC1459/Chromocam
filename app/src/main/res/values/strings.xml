@@ -31,6 +31,8 @@
     <string name="notification_settings_subtitle">Movement</string>
     <string name="notification_settings_summary">Movement detected notifications</string>
 
+    <string name="livestreamButton">Watch Stream</string>
 
     <string name="title_activity_display_picture">View Image</string>
+    <string name="livestream_title">Livestream</string>
 </resources>

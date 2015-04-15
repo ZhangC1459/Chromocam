@@ -28,6 +28,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".LivestreamActivity"
+            android:label="@string/livestream_title"
+            android:parentActivityName=".MainActivity">
+        </activity>
+
         <activity
             android:name=".util.DisplayPictureActivity"
             android:label="@string/title_activity_display_picture"
