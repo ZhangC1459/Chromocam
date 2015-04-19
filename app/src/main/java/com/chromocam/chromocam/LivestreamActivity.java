@@ -241,7 +241,7 @@ public class LivestreamActivity extends Activity {
 //                imageBytes[offset] = currByte;
 //            }
 
-
+            //http://www.onicos.com/staff/iz/formats/jpeg.html
             imageBytes[0] = (byte) 0xff;
             imageBytes[1] = (byte) 0xd8;
             imageBytes[2] = (byte) 0xff;
