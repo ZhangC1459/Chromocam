@@ -14,7 +14,7 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class MjpegRunnable  implements Runnable{
+public class MjpegRunnable implements Runnable{
 
     private static final String CONTENT_LENGTH = "Content-length: ";
     private static final String CONTENT_TYPE = "Content-type: image/jpeg";
@@ -34,10 +34,14 @@ public class MjpegRunnable  implements Runnable{
 
     }
 
+
+    public void setProcessing(boolean set)
+    {this.processing = set;}
     public void start()
     {
 
     }
+
     public void stop()
     {
         processing = false;
@@ -56,10 +60,10 @@ public class MjpegRunnable  implements Runnable{
             URLConnection urlConn = mjpegURL.openConnection();
 
             //Timeout Time
-            urlConn.setReadTimeout(3000);
+            urlConn.setReadTimeout(5000);
             urlConn.connect();
 
-            urlStream = urlConn.getInputStream();
+            this.urlStream = urlConn.getInputStream();
             stringWriter = new StringWriter(128);
         }
         catch (MalformedURLException e) {
@@ -92,7 +96,7 @@ public class MjpegRunnable  implements Runnable{
             // close streams
             Log.d("MJPEG RUNNABLE", "Closing");
             try {
-                urlStream.close();
+                this.urlStream.close();
             } catch (IOException ioe) {
                 Log.d("MJPEG RUNNABLE", "Failed to close the stream: " + ioe);
             }
@@ -148,6 +152,7 @@ public class MjpegRunnable  implements Runnable{
 
         // rest is the buffer
         int contentLength = contentLength(header);
+        Log.d("MJPEG RUNNABLE", "Content Length:" + contentLength);
         byte[] imageBytes = new byte[contentLength + 1];
         // since we ate the original 255 , shove it back in
         imageBytes[0] = (byte)255;
@@ -177,3 +182,4 @@ public class MjpegRunnable  implements Runnable{
         return retValue;
     }
 }
+

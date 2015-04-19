@@ -121,7 +121,7 @@ public class EventContent{
     }
 
     private class getJSONTask extends AsyncTask<URL, Void, Void>{
-        int eventLimit = 25;
+        int eventLimit = 1;
 
 
         @Override
