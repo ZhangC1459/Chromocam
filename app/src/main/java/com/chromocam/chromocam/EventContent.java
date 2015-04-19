@@ -54,6 +54,7 @@ public class EventContent{
     private void addItem(EventItem item){
         ITEMS.add(item);
         ITEM_MAP.put(item.imageID, item);
+        Log.d("EventContent", "JSON item being added to item MAP");
     }
 
     //item representing a piece of content
@@ -120,6 +121,9 @@ public class EventContent{
     }
 
     private class getJSONTask extends AsyncTask<URL, Void, Void>{
+        int eventLimit = 25;
+
+
         @Override
         protected Void doInBackground(URL...u){
             try{
@@ -129,16 +133,68 @@ public class EventContent{
                 BufferedReader sr = new BufferedReader(new InputStreamReader(in, "UTF-8"));
                 StringBuilder res = new StringBuilder();
 
-                String inputStr;
-                while((inputStr = sr.readLine()) != null)
-                    res.append(inputStr);
-                Log.d("NOTIFICATION", "Received string" + res);
-                files = new JSONArray(res.toString());
+                ArrayList<JSONObject> jsonObjList = new ArrayList<JSONObject>();
+//                try {
+//                    jsonObjList.add(new JSONObject("{\"event_id\":33013,\"time_stamp\":\"2015-04-18T22:50:35.000Z\",\"file_type\":1,\"archive\":0}"));
+//                    jsonObjList.add(new JSONObject("{\"event_id\":33012,\"time_stamp\":\"2015-04-18T22:50:34.000Z\",\"file_type\":1,\"archive\":0}"));
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+
+                //Process Buffered Stream Until Single JSON Object is completed
+                boolean parsingJSON = true;
+                int currentCharValue;
+                char currentChar;
+                StringBuilder jsonObjStr = new StringBuilder();
+
+                //Read character by character until end of line
+                    while((currentCharValue = sr.read()) != -1)
+                    {
+                        //Beginning of JSON Object
+                        if(currentCharValue == (int)'{')
+                        {
+                            jsonObjStr.append("{");
+                            while((currentCharValue = sr.read()) != -1 && currentCharValue != (int)'}')
+                            {
+                                jsonObjStr.append((char)currentCharValue);
+                            }
+                            jsonObjStr.append("}");
+                            Log.d("JSON OBJ STRING", jsonObjStr.toString());
+                            try {
+                                jsonObjList.add(new JSONObject(jsonObjStr.toString()));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            jsonObjStr.setLength(0);
+                        }
+
+                        if (jsonObjList.size() == eventLimit)
+                        {
+                            break;
+                        }
+                    }
+
+
+
+
+//                String jsonObjStr;
+
+//                while()
+
+
+                //This will cause outOfMemory issues
+                //String inputStr;
+                //while((inputStr = sr.readLine()) != null)
+                //    res.append(inputStr);
+
+                //Log.d("NOTIFICATION", "Received string" + res);
+                //files = new JSONArray(res.toString());
+                files = new JSONArray(jsonObjList);
                 JSONObject row;
                 String fileType;
                 String archiveState;
                 try {
-                    for (int i = 0; i < 10; i++) {
+                    for (int i = 0; i < eventLimit; i++) {
                         row = files.getJSONObject(i);
                         fileType = row.getString("file_type");
                         archiveState = row.getString("archive");
@@ -152,8 +208,8 @@ public class EventContent{
                 } catch (NullPointerException e){
                     e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
+//            } catch (JSONException e) {
+//                e.printStackTrace();
             } catch(IOException e) {
                 e.printStackTrace();
             }

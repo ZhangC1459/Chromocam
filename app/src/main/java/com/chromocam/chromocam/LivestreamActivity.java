@@ -1,27 +1,12 @@
 package com.chromocam.chromocam;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnPreparedListener;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.MediaController;
-import android.widget.VideoView;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import com.chromocam.chromocam.MjpegRunnable;
 
 public class LivestreamActivity extends Activity {
 
