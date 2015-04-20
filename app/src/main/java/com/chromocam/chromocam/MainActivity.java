@@ -140,6 +140,7 @@ public class MainActivity extends Activity implements EventListTab.OnEventSelect
         archives.setTabListener(new TabListener(archiveTab));
         livestream.setTabListener(new TabListener(livestreamTab));
 
+        //Add Tabs
         actionBar.addTab(events);
         actionBar.addTab(archives);
         actionBar.addTab(livestream);
