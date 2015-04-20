@@ -13,6 +13,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.chromocam.chromocam.util.ChromoServer;
+
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -37,21 +39,20 @@ public class MainActivity extends Activity implements EventListTab.OnEventSelect
     String topLevelName = "activity_main";
 
     //Authorization
+    ChromoServer chromoServer;
     Button registerButton;
     private Boolean deviceRegistered = false;
     private Bundle savedInstanceState;
 
     //Seems legit
     private String secretToken = "";
-    private String targetDomain = "Target";
-    private String targetDomainRegister = "http://downyhouse.homenet.org:3000/devices/register";
-    private String password = "Test";
+    private String targetDomain = "http://downyhouse.homenet.org:3000";
+    private String password = "asdf123";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.savedInstanceState = savedInstanceState;
-
 
         //Registration Phase
         if(!this.deviceRegistered){
@@ -73,9 +74,13 @@ public class MainActivity extends Activity implements EventListTab.OnEventSelect
 
     public void onClick(View v) {
         Log.d("REGISTER_DEBUG", "Register Button Pressed");
-        //this.checkRegistration();
-        this.deviceRegistered = true;
-        this.initChromocam();
+
+        this.checkRegistration();
+
+        if(this.deviceRegistered == true)
+        {
+            this.initChromocam();
+        }
     }
 
     private boolean checkRegistration()
@@ -87,30 +92,13 @@ public class MainActivity extends Activity implements EventListTab.OnEventSelect
         String tDomain = target_domain_key.getEditableText().toString();
         Log.d("REGISTER_DEBUG", "Domain: " + tDomain);
 
+        //this.chromoServer = new ChromoServer(tDomain, pws )
+
+
         //Get Password
         TextView password_key = (TextView)findViewById(R.id.password_key);
         String pws = password_key.getEditableText().toString();
         Log.d("REGISTER_DEBUG", "Password: " + pws);
-
-        // Create a new HttpClient and Post Header
-        HttpClient httpclient = new DefaultHttpClient();
-        HttpPost httppost = new HttpPost(this.targetDomainRegister);
-
-        try {
-            // Add your data
-            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-            nameValuePairs.add(new BasicNameValuePair("id", "12345"));
-            nameValuePairs.add(new BasicNameValuePair("stringdata", "Hi"));
-            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-            // Execute HTTP Post Request
-            HttpResponse response = httpclient.execute(httppost);
-            Log.d("REGISTER_POST", "Domain: " + tDomain);
-        } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-        }
 
         return false;
     }
@@ -224,4 +212,7 @@ public class MainActivity extends Activity implements EventListTab.OnEventSelect
     public void onEventSelection(EventContent.EventItem item) {
 
     }
+
+
+
 }
