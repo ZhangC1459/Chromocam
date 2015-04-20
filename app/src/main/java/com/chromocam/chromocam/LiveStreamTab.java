@@ -11,10 +11,11 @@ import android.webkit.WebView;
 import android.widget.Button;
 
 public class LiveStreamTab extends Fragment {
-    WebView webview;
+
     String targetURL = "http://192.168.1.16:3000/stream2";
     Button button;
     View rootView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.livestream, container, false);

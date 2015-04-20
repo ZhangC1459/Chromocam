@@ -15,22 +15,21 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class LivestreamActivity extends Activity {
 
     // Declare variables
-    ProgressDialog pDialog;
+    private ProgressDialog progressDialog;
     ImageView mjpegView;
-    Thread connection;
     MJPEGasyncTask task;
-    // Insert your Video URL
+
+    // Stream Source
     String videoURL = "http://192.168.1.16:3000/stream2";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // Get the layout from video_main.xml
         setContentView(R.layout.livestreamvideo);
 
@@ -48,38 +47,21 @@ public class LivestreamActivity extends Activity {
             Log.d("Stream ERROR", "Stream Lost Connection!");
         }
 
-        // Execute StreamVideo AsyncTask
-
-//        // Create a progressbar
-//        pDialog = new ProgressDialog(LivestreamActivity.this);
-//        // Set progressbar title
-//        pDialog.setTitle("Downy Studios");
-//        // Set progressbar message
-//        pDialog.setMessage("Buffering...");
-//        pDialog.setIndeterminate(false);
-//        pDialog.setCancelable(false);
-//        // Show progressbar
-//        pDialog.show();
-
     }
     @Override
     public void onBackPressed()
     {
-        //If Top level fragment, show action bar
-        //this.connection.get
+        //Stop Stream
+        this.progressDialog.dismiss();
         this.task.stop();
+        //Previous Activity
         super.onBackPressed();
 
+
         Log.d("BACK-PRESSED-DEBUG", "Livestream Stopping");
-        //this.actionBar.show();
-
     }
 
-    private void updateStreamImage(Bitmap image)
-    {
-        this.mjpegView.setImageBitmap(image);
-    }
-
+    //MJPEG Convenience Class
     private class MJPEG {
         //Variables
         private ImageView streamView;
@@ -93,37 +75,53 @@ public class LivestreamActivity extends Activity {
         }
     }
 
-    //Asynchronusly Update View
+    //Asynchronously Update View
     private class MJPEGasyncTask extends AsyncTask<MJPEG, Void, Bitmap> {
-        private static final String CONTENT_LENGTH = "Content-length:";
 
-        private static final String CONTENT_TYPE = "Content-type: image/jpeg";
-
+        //Parent Activity Info
         MJPEG mjpeg = null;
-        //private MJpegViewer viewer;
-        private ImageView streamImage;
-        private String urlString;
         private InputStream urlStream;
-        private StringBuilder stringWriter;
         private boolean processing = true;
-        private Bitmap image;
 
+        //Byte Buffers
+        private int byteBufferSize = 50000;
+
+        //Image Buffer
+        private ArrayList<byte[]> imageListBuffer;
+        private byte[] byteBuffer;
+        private Bitmap image;
 
         public Bitmap getImage()
         {    return this.image;     }
 
         @Override
+        protected void onPreExecute()
+        {
+            super.onPreExecute();
+            progressDialog = new ProgressDialog(LivestreamActivity.this);
+            progressDialog.setCancelable(true);
+            progressDialog.setMessage("Loading Livestream...");
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setProgress(0);
+            progressDialog.show();
+        }
+
+
+
+        @Override
         protected Bitmap doInBackground(MJPEG... streams) {
             Log.d("Livestream", "Background Task getting image");
+
+            //Initialize Byte Buffer, Image Buffer
+            this.byteBuffer = new byte[byteBufferSize];
+            this.imageListBuffer = new ArrayList<byte[]>();
+
+            //Load MJPEG
             this.mjpeg = streams[0];
-            this.streamImage = mjpeg.streamView;
-            this.stringWriter = new StringBuilder();
-            //InputStream in = mjpeg.streamSource.openConnection().getInputStream();
+
+            //Open Connection to Server MJPEG Stream
             try {
                 this.urlStream = mjpeg.streamSource.openStream();
-
-                //InputStream is = (InputStream) this.mjpeg.streamSource.getContent();
-                //return BitmapFactory.decodeStream(is);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -132,14 +130,19 @@ public class LivestreamActivity extends Activity {
                 e.printStackTrace();
             }
 
-
+            //Background Processing, constantly change UI image
             while(processing)
             {
                 Log.d("MJPEG RUNNABLE", "Processing");
                 try
                 {
+                    //Get JPEG from Stream
                     byte[] b = retrieveNextImage();
+
+                    //Convert JPEG Byte Array to Bitmap
                     Bitmap image = BitmapFactory.decodeByteArray(b, 0, b.length);
+
+                    //Set imageView to Bitmap Image if valid
                     Log.d("MJPEG Image", image.toString());
                     if(!image.toString().equals("Can't read")) {
                         this.image = image;
@@ -147,6 +150,11 @@ public class LivestreamActivity extends Activity {
                             @Override
                             public void run() {
                                 // This code will always run on the UI thread, therefore is safe to modify UI elements.
+                                //Hide Progress Bar
+                                if(progressDialog.isShowing())
+                                {   progressDialog.hide();  }
+
+                                //Set UI Image
                                 mjpegView.setImageBitmap(task.getImage());
                             }
 
@@ -163,7 +171,8 @@ public class LivestreamActivity extends Activity {
                     Log.d("MJPEG RUNNABLE", "Can't read");
                 }
             }
-            // close streams
+
+            // Close Streams
             Log.d("MJPEG RUNNABLE", "Closing");
             try {
                 this.urlStream.close();
@@ -176,8 +185,13 @@ public class LivestreamActivity extends Activity {
             return null;
         }
 
+        //End Background Process
         public void stop()
-        {   processing = false;}
+        {
+            processing = false;
+            this.cancel(true);
+        }
+
 
         /**
          * Using the <i>urlStream</i> get the next JPEG image as a byte[]
@@ -187,89 +201,63 @@ public class LivestreamActivity extends Activity {
         private byte[] retrieveNextImage() throws IOException, NullPointerException
         {
             Log.d("MJPEG RUNNABLE", "Retrieving Next Image");
-            boolean haveHeader = false;
-            boolean contentLenNumFound = false;
-            String tempString;
-            int contentLength = 0;
-            ArrayList headerbytes = new ArrayList<Integer>();
 
-            String pattern = "Content-Length:\\s+([0-9]+)";
-            Pattern lengthPat = Pattern.compile(pattern);
+            //JPEG Format: http://www.onicos.com/staff/iz/formats/jpeg.html
+            //Beginning of File
+                //0xff
+                //0xd8
+                //0xff
+                //0xe0
+            //End of File
+                //0xff
+                //0xd9
 
+            boolean startImage = false;
+            int startPosition = 0;
+
+            boolean endImage = false;
+            int endPosition = 0;
+
+            boolean haveImage = false;
+            int byteCounter = 0;
             int currByte = -1;
             int prevByte = -1;
-            String header = null;
-            // build headers
-            // the DCS-930L stops it's headers
-            while((currByte = urlStream.read()) > -1 && haveHeader == false)
-            {
 
-                //255 Notifies beginning of JPEG
-                if(currByte != 0xe0 && prevByte !=0xff)
-                {   stringWriter.append((char)currByte);
-                    headerbytes.add(currByte);
-                }
-                else
+            //Start Scanning Input Stream
+            while((currByte = urlStream.read()) > -1 && haveImage == false)
+            {
+                byteCounter++;
+                this.byteBuffer[byteCounter] = (byte)currByte;
+
+                //Notifies beginning of JPEG
+                if(currByte == 0xe0 && prevByte ==0xff && startImage == false)
                 {
-                    headerbytes.add(currByte);
-                    header = stringWriter.toString();
-                    Matcher m = lengthPat.matcher(header);
-                    Log.d("MJPEG Header", "Header: " + header);
-                    if(m.find())
-                    {
-                        Log.d("MJPEG Header", m.group(1));
-                        contentLength = Integer.parseInt(m.group(1));
-                        haveHeader = true;
-                    }
+                    startImage = true;
+                    startPosition = byteCounter - 3;
+
+                }
+
+                //End of JPEG
+                if(currByte == 0xd9 && prevByte == 0xff && startImage == true)
+                {
+                    endImage = true;
+                    endPosition = byteCounter;
+                }
+
+                if(endImage)
+                {
+                    haveImage = true;
+                    int imageLength = endPosition - startPosition + 1;
+                    byte[] tempImage = new byte[imageLength];
+                    System.arraycopy(this.byteBuffer, startPosition, tempImage, 0, imageLength);
+                    this.imageListBuffer.add(tempImage);
+                    return tempImage;
                 }
 
                 prevByte = currByte;
             }
-            Log.d("MJPEG RUNNABLE", "Header: " + header);
-            // 255 indicates the start of the jpeg image
-            boolean haveImage = false;
 
-
-            contentLength -= 1;
-            Log.d("MJPEG RUNNABLE", "Content Length:" + contentLength);
-            byte[] imageBytes = new byte[contentLength + 1];
-            // since we ate the original 255 , shove it back in
-//            imageBytes[0] = (byte)255;
-//            int offset = 1;
-//            while(haveImage == false && (currByte = urlStream.read()) > -1)
-//            {
-//                imageBytes[offset] = currByte;
-//            }
-
-            //http://www.onicos.com/staff/iz/formats/jpeg.html
-            imageBytes[0] = (byte) 0xff;
-            imageBytes[1] = (byte) 0xd8;
-            imageBytes[2] = (byte) 0xff;
-
-            int numRead = 0;
-            numRead=urlStream.read(imageBytes, 3, imageBytes.length-3);
-
-//            while (offset < imageBytes.length && (numRead=urlStream.read(imageBytes, offset, imageBytes.length-offset)) >= 0) {
-//                offset += numRead;
-//            }
-
-            stringWriter.setLength(0);
-
-            return imageBytes;
-        }
-
-        // dirty but it works content-length parsing
-        private int contentLength(String header)
-        {
-            int indexOfContentLength = header.indexOf(CONTENT_LENGTH);
-            int valueStartPos = indexOfContentLength + CONTENT_LENGTH.length();
-            int indexOfEOL = header.indexOf(' ', indexOfContentLength);
-
-            String lengthValStr = header.substring(valueStartPos, indexOfEOL).trim();
-
-            int retValue = Integer.parseInt(lengthValStr);
-
-            return retValue;
+            return null;
         }
     }
 }
