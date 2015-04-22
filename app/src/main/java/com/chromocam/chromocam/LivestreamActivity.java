@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.ImageView;
 
 import java.io.IOException;
@@ -25,7 +26,6 @@ public class LivestreamActivity extends Activity {
 
     // Stream Source
     String videoURL = "http://192.168.1.16:3000/stream2";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +47,17 @@ public class LivestreamActivity extends Activity {
             Log.d("Stream ERROR", "Stream Lost Connection!");
         }
 
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item){
+        int itemId = item.getItemId();
+        switch(itemId){
+            case android.R.id.home:
+                this.onBackPressed();
+                break;
+        }
+        return true;
     }
     @Override
     public void onBackPressed()
@@ -87,7 +98,6 @@ public class LivestreamActivity extends Activity {
         private int byteBufferSize = 50000;
 
         //Image Buffer
-        private ArrayList<byte[]> imageListBuffer;
         private byte[] byteBuffer;
         private Bitmap image;
 
@@ -114,7 +124,6 @@ public class LivestreamActivity extends Activity {
 
             //Initialize Byte Buffer, Image Buffer
             this.byteBuffer = new byte[byteBufferSize];
-            this.imageListBuffer = new ArrayList<byte[]>();
 
             //Load MJPEG
             this.mjpeg = streams[0];
@@ -250,7 +259,6 @@ public class LivestreamActivity extends Activity {
                     int imageLength = endPosition - startPosition + 1;
                     byte[] tempImage = new byte[imageLength];
                     System.arraycopy(this.byteBuffer, startPosition, tempImage, 0, imageLength);
-                    this.imageListBuffer.add(tempImage);
                     return tempImage;
                 }
 

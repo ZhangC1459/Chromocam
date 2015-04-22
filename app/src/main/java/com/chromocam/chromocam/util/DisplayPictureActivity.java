@@ -151,7 +151,7 @@ public class DisplayPictureActivity extends Activity {
     private class UploadAsyncTask extends AsyncTask<JSONObject, Void, String>{
         @Override
         protected String doInBackground(JSONObject...keyIDPair){
-            try{ //TODO: FIGURE THE FUCK OUT WHY THE JSON IS BEING MALFORMED
+            try{
                 String imgUrl = "http://downyhouse.homenet.org:3000/files/" + imageID + "/setArchive";
                 //create an HTTPClient and post header
                 HttpClient httpClient = new DefaultHttpClient();

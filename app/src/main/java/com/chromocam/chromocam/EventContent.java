@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.chromocam.chromocam.util.ChromoServer;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -35,7 +37,10 @@ public class EventContent{
     //This "type" variable tells the Content generator which fragment called it, and thus, which
     // content (archived or events) it should be populating the listView with
     public String type;
+    //private ChromoServer serv;
+
     public EventContent(int type){
+        //this.serv = server;
         this.type = Integer.toString(type);
     }
     { //This function will populate the list of Items upon creation of an instance of "EventContent"
@@ -65,7 +70,7 @@ public class EventContent{
         public Bitmap image;
         public String url;
         private String[] temp;
-        //Constructor, accepts a JSONObject from the method up top
+        //Constructor, accepts a JSONObject from the Async Loader method
         public EventItem(JSONObject input){
             try { //attempts to grab the event id and its timestamp
                 imageID = input.get("event_id").toString();
@@ -97,6 +102,8 @@ public class EventContent{
         }
     }
 
+    //This is the AsyncLoader for each individual file.  It is passed an instance of an EventItem
+    // with a URL pre-loaded, and downloads the picture from that URL, returning it as a bitmap
     private class getFileTask extends AsyncTask<EventItem, Void, Bitmap>{
         EventItem item = null;
         @Override
@@ -114,14 +121,16 @@ public class EventContent{
             }
             return null;
         }
+        //After execution, the event item's image is updated to contain the result
         protected void onPostExecute(Bitmap result){
             item.image = result;
         }
 
     }
 
+    //This is the AsyncLoader task for getting the initial JSON list of all images
     private class getJSONTask extends AsyncTask<URL, Void, Void>{
-        int eventLimit = 5;
+        int eventLimit = 5; //current limit is set to 5; this can be changed in settings
 
 
         @Override
@@ -178,8 +187,6 @@ public class EventContent{
 
 
 //                String jsonObjStr;
-
-//                while()
 
 
                 //This will cause outOfMemory issues
