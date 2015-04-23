@@ -25,7 +25,7 @@ public class LivestreamActivity extends Activity {
     MJPEGasyncTask task;
 
     // Stream Source
-    String videoURL = "http://192.168.1.16:3000/stream2";
+    String videoURL = "http://downyhouse.homenet.org:3000/stream2";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
