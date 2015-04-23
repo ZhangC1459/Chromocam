@@ -7,7 +7,12 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.Activity;
 import android.app.ListFragment;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.util.Log;
@@ -20,6 +25,9 @@ import android.widget.TextView;
 import com.chromocam.chromocam.util.ChromoComplete;
 import com.chromocam.chromocam.util.ChromoServer;
 import com.chromocam.chromocam.util.Payload;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -32,9 +40,28 @@ import org.apache.http.HttpResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class MainActivity extends Activity implements ChromoComplete, EventListTab.OnEventSelectionListener, ArchiveListTab.OnEventSelectionListener, View.OnClickListener{
+
+   //Push Variables
+
+   private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+
+
+
+    /**
+     * Tag used on log messages.
+     */
+    static final String TAG = "Chromocam";
+
+    Context context;
+
+
+
+
+
 
     //Tab manager
     ActionBar actionBar;
@@ -62,7 +89,13 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         this.savedInstanceState = savedInstanceState;
+        this.chromoServer = new ChromoServer();
+
+
+        this.context = getApplicationContext();
+
         quitDialog = new AlertDialog.Builder(this);
         quitDialog.setTitle("Quit Chromocam?");
         quitDialog.setMessage(R.string.are_you_sure);
@@ -124,8 +157,9 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         String pws = password_key.getEditableText().toString();
         Log.d("REGISTER_DEBUG", "Password: " + pws);
 
-        this.chromoServer = new ChromoServer();
-        chromoServer.initChromoServer(tDomain, pws, this);
+
+        chromoServer.initChromoServer(tDomain, pws, this, this.context);
+        //this.chromoServer.initPushRegistration();
 
     }
 
@@ -160,6 +194,34 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         actionBar.addTab(livestream);
     }
 
+    /**
+     * Check the device to make sure it has the Google Play Services APK. If
+     * it doesn't, display a dialog that allows users to download the APK from
+     * the Google Play Store or enable it in the device's system settings.
+     */
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else {
+                Log.i(TAG, "This device is not supported.");
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Check device for Play Services APK.
+        checkPlayServices();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

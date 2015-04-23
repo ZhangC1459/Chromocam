@@ -9,6 +9,28 @@
         android:targetSdkVersion="19" />
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- GCM requires a Google account. -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+
+    <!-- Keeps the processor from sleeping when a message is received. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
+    <!--
+    Creates a custom permission so only this app can receive its messages.
+    NOTE: the permission *must* be called PACKAGE.permission.C2D_MESSAGE,
+          where PACKAGE is the application's package name.
+   -->
+
+    <permission android:name="com.chromocam.chromocam.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.chromocam.chromocam.permission.C2D_MESSAGE" />
+
+    <!-- This app has permission to register and receive data message. -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -40,6 +62,23 @@
             android:label="@string/title_activity_display_picture"
             android:parentActivityName=".MainActivity">
         </activity>
+
+        <!--
+          WakefulBroadcastReceiver that will receive intents from GCM
+          services and hand them to the custom IntentService.
+          The com.google.android.c2dm.permission.SEND permission is necessary
+          so only GCM services can send data messages for the app.
+        -->
+        <!--<receiver-->
+            <!--android:name=".GcmBroadcastReceiver"-->
+            <!--android:permission="com.google.android.c2dm.permission.SEND" >-->
+            <!--<intent-filter>-->
+                <!--&lt;!&ndash; Receives the actual messages. &ndash;&gt;-->
+                <!--<action android:name="com.google.android.c2dm.intent.RECEIVE" />-->
+                <!--<category android:name="com.google.android.gcm.demo.app" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
+        <!--<service android:name=".GcmIntentService" />-->
     </application>
 
 </manifest>
