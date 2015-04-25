@@ -7,20 +7,28 @@ import android.os.Bundle;
 import android.app.ListFragment;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chromocam.chromocam.util.ChromoServer;
 import com.chromocam.chromocam.util.DisplayPictureActivity;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.util.ArrayList;
 
 
 public class ArchiveListTab extends ListFragment {
     private static final String param1 = null;
     private OnEventSelectionListener mListener;
-    private EventContent content = new EventContent(1);
-
+    private ArrayList<EventContent> items;
+    private EventListAdapter mAdapter;
+    private ChromoServer serv;
+    private int page = 1;
+    private Button btn_prev;
+    private Button btn_next;
+    private TextView title;
     public static ArchiveListTab newInstance(String param) {
         ArchiveListTab fragment = new ArchiveListTab();
         Bundle args = new Bundle();
@@ -38,10 +46,53 @@ public class ArchiveListTab extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //sets adapter to display content using a custom adapter with a custom list view
-        EventListAdapter mAdapter = new EventListAdapter(getActivity(), content.ITEMS);
+        serv = ((MainActivity) getActivity()).getServ();
+        btn_prev = (Button) btn_prev.findViewById(R.id.prev);
+        btn_next = (Button) btn_next.findViewById(R.id.next);
+        title = (TextView) title.findViewById(R.id.title);
+        btn_prev.setEnabled(false);
 
+        //TODO loadList(page); //Async through server
+        //Set items to generate from
+        //sets adapter to display content using a custom adapter with a custom list view
+
+
+        btn_next.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                page++;
+                //TODO loadList(page);
+                CheckEnable();
+            }
+        });
+
+        btn_prev.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+
+                page--;
+                //TODO loadList(page);
+                CheckEnable();
+            }
+        });
+    }
+    private void loadListCallback(ArrayList<EventContent> list){ //callback
+        items = list;
+        mAdapter = new EventListAdapter(getActivity(), items);
         setListAdapter(mAdapter);
+    }
+
+    private void CheckEnable()
+    {
+        if(page == 1)
+        {
+            btn_prev.setEnabled(false);
+        }
+        else
+        {
+            btn_prev.setEnabled(true);
+            btn_next.setEnabled(true);
+        }
     }
 
 
@@ -67,7 +118,7 @@ public class ArchiveListTab extends ListFragment {
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
 
-        EventContent.EventItem item = content.ITEMS.get(position);
+        EventContent item = items.get(position);
         //Intent to call DisplayPictureActivity
         Intent intent = new Intent(this.getActivity(), DisplayPictureActivity.class);
         //Encodes the bitmap into an array
@@ -78,7 +129,7 @@ public class ArchiveListTab extends ListFragment {
             //Adds the bitmap to the intent
             intent.putExtra("image", b);
             //Adds the calling fragment type to the intent
-            intent.putExtra("calling", 2);
+            intent.putExtra("calling", 1);
             //Adds the image id for archive/unarchive purposes to the intent
             intent.putExtra("imageID", item.getImageID());
             //starts the activity
@@ -100,7 +151,8 @@ public class ArchiveListTab extends ListFragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnEventSelectionListener {
-        public void onEventSelection(EventContent.EventItem item);
+        public void onEventSelection(EventContent item);
     }
+
 
 }

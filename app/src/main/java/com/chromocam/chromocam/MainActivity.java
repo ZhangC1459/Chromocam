@@ -141,6 +141,10 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
 
     }
 
+    public ChromoServer getServ(){
+        return this.chromoServer;
+    }
+
     private void checkRegistration()
     {
         Log.d("REGISTER_DEBUG", "Checking Registration");
@@ -318,7 +322,7 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
 
     //required method
     @Override
-    public void onEventSelection(EventContent.EventItem item) {
+    public void onEventSelection(EventContent item) {
 
     }
 

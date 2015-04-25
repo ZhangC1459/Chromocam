@@ -10,9 +10,9 @@ import android.widget.TextView;
 import android.app.Activity;
 import java.util.List;
 
-public class EventListAdapter extends ArrayAdapter<EventContent.EventItem> {
+public class EventListAdapter extends ArrayAdapter<EventContent> {
 
-    public EventListAdapter(Context context, List<EventContent.EventItem> items) {
+    public EventListAdapter(Context context, List<EventContent> items) {
         super(context, R.layout.event_item_list, items);
     }
 
@@ -23,7 +23,7 @@ public class EventListAdapter extends ArrayAdapter<EventContent.EventItem> {
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
-        EventContent.EventItem item = (EventContent.EventItem)getItem(position);
+        EventContent item = (EventContent)getItem(position);
         ViewHolder holder = null;
         View viewToUse = null;
         // If there is no view being reused
