@@ -32,6 +32,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class DisplayPictureActivity extends Activity {
     private int type = 1;
@@ -43,15 +45,31 @@ public class DisplayPictureActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_picture);
         //get intent data
-        byte[] b = getIntent().getByteArrayExtra("image");
-        type = getIntent().getIntExtra("calling", 1);
+        type = getIntent().getIntExtra("calling", 1); //Determines the type.  1 is Event, 2 is Archive, 3 will be Push
         imageID = getIntent().getStringExtra("imageID");
-        image = BitmapFactory.decodeByteArray(b, 0, b.length);
-        ImageView imageView = (ImageView) findViewById(R.id.full_image_view);
-        imageView.setImageBitmap(image);
+        switch (type) {
+            case 1:
+            case 2:
+                byte[] b = getIntent().getByteArrayExtra("image");
+                image = BitmapFactory.decodeByteArray(b, 0, b.length);
+                ImageView imageView = (ImageView) findViewById(R.id.full_image_view);
+                imageView.setImageBitmap(image);
+                break;
+            case 3:
+                String url = "http://downyhouse.homenet.org:3000/files/" + this.imageID;
+                new getFileTask().execute(url);
+                break;
+            default:
+                Log.d("Error", "How the shit did you get a value that isn't 1, 2, or 3?");
+                break;
+        }
 
     }
 
+    public void finishedPushDownload(){
+        ImageView imageView = (ImageView) findViewById(R.id.full_image_view);
+        imageView.setImageBitmap(image);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -179,6 +197,29 @@ public class DisplayPictureActivity extends Activity {
         protected void onPostExecute(String result){
             Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
         }
+    }
+    private class getFileTask extends AsyncTask<String, Void, Bitmap>{
+        @Override
+        protected Bitmap doInBackground(String... item) {
+            String url = item[0];
+            try {
+                InputStream is = (InputStream) new URL(url).getContent();
+                return BitmapFactory.decodeStream(is);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        //After execution, the event item's image is updated to contain the result
+        protected void onPostExecute(Bitmap result){
+            image = result;
+            finishedPushDownload();
+        }
+
     }
 }
 
