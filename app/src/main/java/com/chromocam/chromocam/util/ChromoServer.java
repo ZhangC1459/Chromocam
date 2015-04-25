@@ -77,6 +77,7 @@ public class ChromoServer{
 
     private ProgressDialog progressDialog;
     private Activity currentActivity;
+
     //Registration Parameters
     private String uniqueToken;
     private String targetURLroot;
