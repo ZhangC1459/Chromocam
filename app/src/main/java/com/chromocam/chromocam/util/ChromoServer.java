@@ -56,6 +56,10 @@ public class ChromoServer{
     public static final String EXTRA_MESSAGE = "message";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
+    private static final String PROPERTY_TOKEN = "token";
+    private static final String PROPERTY_TARGET = "target";
+    private static final String PROPERTY_DEVICE_ID = "device_id";
+
     String regid;
 
     TextView mDisplay;
@@ -74,6 +78,7 @@ public class ChromoServer{
     //Registration Parameters
     private String uniqueToken;
     private String targetURLroot;
+    private String deviceID;
 
     private URL targetURL;
 
@@ -87,11 +92,13 @@ public class ChromoServer{
     public void initChromoServer(String targetURLroot, String password, Activity current, Context context)
     {
         Log.d("Chromo Server", "Initializing ChromoServer Connection");
+        Log.d("Chromo Server", "Current token:" + getSharedPrefInfo(context, PROPERTY_TOKEN));
+        Log.d("Chromo Server", "Current target:" + getSharedPrefInfo(context, PROPERTY_TARGET));
         this.currentActivity = current;
         this.targetURLroot = targetURLroot;
         this.context = context;
 
-        if(this.getRegistrationId(this.context).isEmpty())
+        if(this.getSharedPrefInfo(this.context, PROPERTY_REG_ID).isEmpty())
         {
             Log.d("GCM Push Reg", "Starting GCM Push Registration");
             this.registerInBackground();
@@ -109,7 +116,7 @@ public class ChromoServer{
 
     public void initPushRegistration()
     {
-        if(getRegistrationId(this.context).isEmpty())
+        if(getSharedPrefInfo(this.context, PROPERTY_REG_ID).isEmpty())
         {
 
             registerInBackground();
@@ -120,7 +127,7 @@ public class ChromoServer{
     //Register Device to Server
     private void registerDevice(String password)
     {
-        this.regid = this.getRegistrationId(this.context);
+        this.regid = this.getSharedPrefInfo(this.context, PROPERTY_REG_ID);
 
         if(regid.isEmpty())
         {
@@ -221,6 +228,7 @@ public class ChromoServer{
                     JSONObject res = x.getJSONObject(0);
                     uniqueToken = res.getString("token");
                     p.setResult(true);
+                    storeCredentials(context, uniqueToken, targetURLroot);
                     Toast.makeText(currentActivity, "Registration Success!", Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
                     Log.d("ChromoServ Error", "Bad JSON");
@@ -310,7 +318,38 @@ public class ChromoServer{
         editor.commit();
     }
 
-    /**
+    private void storeCredentials(Context context, String token, String target, String deviceID)
+    {
+        final SharedPreferences prefs = getGcmPreferences(context);
+        Log.d("Credentials", "Token and Target now stored for later use");
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PROPERTY_TOKEN, token);
+        editor.putString(PROPERTY_TARGET, target);
+        editor.commit();
+
+    }
+
+    private String getSharedPrefInfo(Context context, String sharedPrefName)
+    {
+        final SharedPreferences prefs = getGcmPreferences(context);
+        String result = prefs.getString(sharedPrefName, "");
+        if (result.isEmpty()) {
+            Log.i(TAG, sharedPrefName +" not found.");
+            return "";
+        }
+        // Check if app was updated; if so, it must clear the registration ID
+        // since the existing regID is not guaranteed to work with the new
+        // app version.
+        int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+        int currentVersion = getAppVersion(context);
+        if (registeredVersion != currentVersion) {
+            Log.i(TAG, "App version changed.");
+            return "";
+        }
+        return result;
+    }
+
+     /**
      * Gets the current registration ID for application on GCM service, if there is one.
      * <p>
      * If result is empty, the app needs to register.
