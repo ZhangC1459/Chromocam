@@ -69,16 +69,16 @@
           The com.google.android.c2dm.permission.SEND permission is necessary
           so only GCM services can send data messages for the app.
         -->
-        <!--<receiver-->
-            <!--android:name=".GcmBroadcastReceiver"-->
-            <!--android:permission="com.google.android.c2dm.permission.SEND" >-->
-            <!--<intent-filter>-->
-                <!--&lt;!&ndash; Receives the actual messages. &ndash;&gt;-->
-                <!--<action android:name="com.google.android.c2dm.intent.RECEIVE" />-->
-                <!--<category android:name="com.google.android.gcm.demo.app" />-->
-            <!--</intent-filter>-->
-        <!--</receiver>-->
-        <!--<service android:name=".GcmIntentService" />-->
+        <receiver
+            android:name=".GcmBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <!-- Receives the actual messages. -->
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="com.google.android.gcm.demo.app" />
+            </intent-filter>
+        </receiver>
+        <service android:name=".GcmIntentService" />
     </application>
 
 </manifest>

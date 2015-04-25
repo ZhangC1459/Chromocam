@@ -25,6 +25,7 @@ import android.widget.TextView;
 import com.chromocam.chromocam.util.ChromoComplete;
 import com.chromocam.chromocam.util.ChromoServer;
 import com.chromocam.chromocam.util.Payload;
+import com.chromocam.chromocam.util.Purpose;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -91,10 +92,9 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         super.onCreate(savedInstanceState);
 
         this.savedInstanceState = savedInstanceState;
-        this.chromoServer = new ChromoServer();
-
-
         this.context = getApplicationContext();
+
+        this.chromoServer = new ChromoServer(this, this.getApplicationContext());
 
         quitDialog = new AlertDialog.Builder(this);
         quitDialog.setTitle("Quit Chromocam?");
@@ -162,7 +162,7 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         Log.d("REGISTER_DEBUG", "Password: " + pws);
 
 
-        chromoServer.initChromoServer(tDomain, pws, this, this.context);
+        chromoServer.initChromoServer(tDomain, pws);
         //this.chromoServer.initPushRegistration();
 
     }
@@ -293,9 +293,16 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
     @Override
     public void onTaskCompleted(Payload p) {
         deviceRegistered = p.getResult();
-        if(deviceRegistered){
+        Purpose taskPurpose = p.getPurpose();
+
+        if(deviceRegistered && p.getPurpose() == Purpose.REGISTER){
             initChromocam();
-        } else {
+        }
+        else if(deviceRegistered && p.getPurpose() == Purpose.REGISTERED)
+        {
+            //Do Nothing
+        }
+        else {
             Log.d("REG DEBUG", "Registration failed ayyy");
         }
     }

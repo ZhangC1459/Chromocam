@@ -2,9 +2,6 @@ package com.chromocam.chromocam.util;
 
 import org.json.JSONObject;
 
-/**
- * Created by Aleks on 4/19/2015.
- */
 public class Payload{
     private JSONObject post;
     private String URL;
@@ -28,6 +25,8 @@ public class Payload{
     public boolean getResult(){
         return this.result;
     }
+
+    public Purpose getPurpose() { return this.purpose; }
 
     public void setResult(boolean result){
         this.result = result;
