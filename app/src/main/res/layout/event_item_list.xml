@@ -2,19 +2,21 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-
-    android:padding="6dip">
+    android:background="#eaeaea"
+>
     <RelativeLayout
         android:id="@+id/header"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="@color/blue"
+        android:padding="10dp">
 
         <TextView
             android:id="@+id/title"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Page 1"
+            android:text="@string/page"
             android:textSize="20sp"
             android:gravity="center"/>
     </RelativeLayout>
@@ -23,24 +25,25 @@
         android:id="@+id/list"
         android:layout_width="fill_parent"
         android:layout_height="?android:attr/listPreferredItemHeight"
-        android:layout_below="@id/header">
+        android:layout_below="@id/header"
+        android:background="#eaeaea">
 
         <ImageView
+            android:contentDescription="@string/imgContentDesc"
             android:id="@+id/thumbnail"
             android:scaleType="centerInside"
             android:layout_width="75dp"
             android:layout_height="fill_parent"
             android:layout_alignParentTop="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginRight="6dip"
         />
         <TextView
             android:id="@+id/eventID"
             android:layout_width="fill_parent"
-            android:layout_height="26dip"
+            android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="@string/eventID"
-            android:layout_toRightOf="@id/thumbnail"/>
+            android:layout_toEndOf="@id/thumbnail"/>
         <TextView
             android:id="@+id/dateTime"
             android:layout_width="fill_parent"
@@ -49,7 +52,7 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:singleLine="true"
             android:text="@string/dateTime"
-            android:layout_toRightOf="@id/thumbnail"/>
+            android:layout_toEndOf="@id/thumbnail"/>
     </RelativeLayout>
 
     <LinearLayout
@@ -57,20 +60,25 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        style="?android:attr/buttonBarStyle"
+        android:background="@color/blue"
+        >
         <Button
             android:id="@+id/prev"
-            android:text="Prev"
+            android:text="@string/btnPrev"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            style="?android:attr/buttonBarButtonStyle"
         />
         <Button
             android:id="@+id/next"
-            android:text="Next"
+            android:text="@string/btnNext"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            style="?android:attr/buttonBarButtonStyle"
         />
 
 

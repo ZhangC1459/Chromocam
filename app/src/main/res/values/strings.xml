@@ -39,4 +39,9 @@
     <string name="quit">Quit</string>
     <string name="are_you_sure">Are you sure you want to quit Chromocam?</string>
     <string name="cancel">Cancel</string>
+
+    <string name="page">Page 1</string>
+    <string name="imgContentDesc">Event Thumbnail</string>
+    <string name="btnNext">Next</string>
+    <string name="btnPrev">Prev</string>
 </resources>

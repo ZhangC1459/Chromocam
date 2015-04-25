@@ -78,6 +78,7 @@ public class EventListTab extends ListFragment {
     }
     private void loadListCallback(ArrayList<EventContent> list){ //callback
         items = list;
+        title.setText("Page " + page);
         mAdapter = new EventListAdapter(getActivity(), items);
         setListAdapter(mAdapter);
     }
