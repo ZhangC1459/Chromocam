@@ -45,25 +45,12 @@ public class DisplayPictureActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_picture);
         //get intent data
-        type = getIntent().getIntExtra("calling", 1); //Determines the type.  1 is Event, 2 is Archive, 3 will be Push
+        type = getIntent().getIntExtra("calling", 1); //Determines the type.  1 is Event, 2 is Archive
         imageID = getIntent().getStringExtra("imageID");
-        switch (type) {
-            case 1:
-            case 2:
-                byte[] b = getIntent().getByteArrayExtra("image");
-                image = BitmapFactory.decodeByteArray(b, 0, b.length);
-                ImageView imageView = (ImageView) findViewById(R.id.full_image_view);
-                imageView.setImageBitmap(image);
-                break;
-            case 3:
-                String url = "http://downyhouse.homenet.org:3000/files/" + this.imageID;
-                new getFileTask().execute(url);
-                break;
-            default:
-                Log.d("Error", "How the shit did you get a value that isn't 1, 2, or 3?");
-                break;
-        }
-
+        byte[] b = getIntent().getByteArrayExtra("image");
+        image = BitmapFactory.decodeByteArray(b, 0, b.length);
+        ImageView imageView = (ImageView) findViewById(R.id.full_image_view);
+        imageView.setImageBitmap(image);
     }
 
     public void finishedPushDownload(){

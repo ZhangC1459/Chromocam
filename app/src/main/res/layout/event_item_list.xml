@@ -1,35 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:layout_height="fill_parent"
 
     android:padding="6dip">
-
-    <ImageView
-        android:id="@+id/thumbnail"
-        android:scaleType="centerInside"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginRight="6dip"
-    />
-
-
-    <TextView
-        android:id="@+id/eventID"
-        android:layout_width="fill_parent"
-        android:layout_height="26dip"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/eventID"
-        android:layout_toRightOf="@id/thumbnail"/>
-    <TextView
-        android:id="@+id/dateTime"
+    <RelativeLayout
+        android:id="@+id/header"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/eventID"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:singleLine="true"
-        android:text="@string/dateTime"
-        android:layout_toRightOf="@id/thumbnail"/>
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Page 1"
+            android:textSize="20sp"
+            android:gravity="center"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="?android:attr/listPreferredItemHeight"
+        android:layout_below="@id/header">
+
+        <ImageView
+            android:id="@+id/thumbnail"
+            android:scaleType="centerInside"
+            android:layout_width="75dp"
+            android:layout_height="fill_parent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginRight="6dip"
+        />
+        <TextView
+            android:id="@+id/eventID"
+            android:layout_width="fill_parent"
+            android:layout_height="26dip"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/eventID"
+            android:layout_toRightOf="@id/thumbnail"/>
+        <TextView
+            android:id="@+id/dateTime"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/eventID"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:singleLine="true"
+            android:text="@string/dateTime"
+            android:layout_toRightOf="@id/thumbnail"/>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/footer"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true">
+        <Button
+            android:id="@+id/prev"
+            android:text="Prev"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+        />
+        <Button
+            android:id="@+id/next"
+            android:text="Next"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+        />
+
+
+    </LinearLayout>
 </RelativeLayout>
