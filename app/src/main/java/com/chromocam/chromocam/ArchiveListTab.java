@@ -61,7 +61,7 @@ public class ArchiveListTab extends ListFragment {
         btn_prev = (Button) view.findViewById(R.id.prev);
         btn_next = (Button) view.findViewById(R.id.next);
         title = (TextView) view.findViewById(R.id.title);
-        btn_prev.setEnabled(false);
+        CheckEnable();
         title.setText("Page " + page);
 
         //TODO serv.loadList(page); //Async through server

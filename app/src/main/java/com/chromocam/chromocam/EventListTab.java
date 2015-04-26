@@ -63,7 +63,7 @@ public class EventListTab extends ListFragment {
         btn_prev = (Button) view.findViewById(R.id.prev);
         btn_next = (Button) view.findViewById(R.id.next);
         title = (TextView) view.findViewById(R.id.title);
-        btn_prev.setEnabled(false);
+        CheckEnable();
         title.setText("Page " + page);
 
         btn_next.setOnClickListener(new View.OnClickListener() {
