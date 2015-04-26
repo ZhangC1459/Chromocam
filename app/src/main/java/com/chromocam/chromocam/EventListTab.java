@@ -6,7 +6,9 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.app.ListFragment;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -47,20 +49,28 @@ public class EventListTab extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serv = ((MainActivity) getActivity()).getServ();
-        btn_prev = (Button) btn_prev.findViewById(R.id.prev);
-        btn_next = (Button) btn_next.findViewById(R.id.next);
-        title = (TextView) title.findViewById(R.id.title);
-        btn_prev.setEnabled(false);
 
         //TODO serv.loadList(page); //Async through server
         //Set items to generate from
         //sets adapter to display content using a custom adapter with a custom list view
 
 
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.event_item_list, container, false);
+        btn_prev = (Button) view.findViewById(R.id.prev);
+        btn_next = (Button) view.findViewById(R.id.next);
+        title = (TextView) view.findViewById(R.id.title);
+        btn_prev.setEnabled(false);
+        title.setText("Page " + page);
+
         btn_next.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
                 page++;
+                title.setText("Page " + page);
                 //TODO serv.loadList(page);
                 CheckEnable();
             }
@@ -71,14 +81,16 @@ public class EventListTab extends ListFragment {
             public void onClick(View v) {
 
                 page--;
+                title.setText("Page " + page);
                 //TODO serv.loadList(page);
                 CheckEnable();
             }
         });
+        return view;
     }
+
     private void loadListCallback(ArrayList<EventContent> list){ //callback
         items = list;
-        title.setText("Page " + page);
         mAdapter = new EventListAdapter(getActivity(), items);
         setListAdapter(mAdapter);
     }
