@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 public class Payload{
     private JSONObject post;
+
     private String URL;
     private Purpose purpose;
     private boolean result; //true if good result, false if bad result

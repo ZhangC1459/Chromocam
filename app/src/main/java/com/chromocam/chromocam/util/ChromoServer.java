@@ -1,10 +1,7 @@
 package com.chromocam.chromocam.util;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -21,7 +18,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
@@ -42,7 +38,6 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -94,8 +89,6 @@ public class ChromoServer{
 
     public ChromoServer(Activity current, Context context)
     {
-
-
         this.currentActivity = current;
         this.context = context;
 
@@ -106,7 +99,7 @@ public class ChromoServer{
         if(this.getSharedPrefInfo(this.context, PROPERTY_REG_ID).isEmpty())
         {
             Log.d("GCM Push Reg", "Starting GCM Push Registration");
-            this.registerInBackground();
+            this.GCMregisterInBackground();
         }
 
         //Check for Preset Information
@@ -120,13 +113,11 @@ public class ChromoServer{
             Payload registered = new Payload(null, null, Purpose.REGISTERED);
             registered.setResult(true);
 
-            if(currentActivity instanceof MainActivity){
-                ((MainActivity) currentActivity).onTaskCompleted(registered);
+            if(currentActivity instanceof ChromoComplete){
+                ((ChromoComplete) currentActivity).onTaskCompleted(registered);
             }
 
         }
-
-
     }
 
 
@@ -173,7 +164,14 @@ public class ChromoServer{
         Log.d("Chromo Server", "GCM Registration ID: " + regid);
         Log.d("Chromo Server", "JSON Output: " + p.getPost().toString());
 
-        new processPostRequest().execute(p);
+        try {
+             new processPostRequest().execute(prepareSecurePostRequest(new JSONObject(params), this.targetURLroot + registerString));
+
+        } catch (UnsupportedEncodingException e) {
+            Log.d("ChromoServer", "JSON encoding not accepted");
+            e.printStackTrace();
+        }
+
     }
 
 
@@ -188,7 +186,7 @@ public class ChromoServer{
 
         return sb.toString();
     }
-    private class processPostRequest extends AsyncTask<Payload, Void, String>
+    private class processPostRequest extends AsyncTask<HttpPost, Void, String>
     {
         Payload p;
 
@@ -205,38 +203,8 @@ public class ChromoServer{
         }
 
         @Override
-        protected String doInBackground(Payload... params) {
-            p = params[0];
-            //Prepare Connection
-            int TIMEOUT_MILLISEC = 10000;  // = 10 seconds
-            HttpParams httpParams = new BasicHttpParams();
-            HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT_MILLISEC);
-            HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT_MILLISEC);
-            HttpClient client = new DefaultHttpClient(httpParams);
-            HttpPost request = new HttpPost(p.getURL()); //sets URL for POST request
-            request.setHeader("Content-Type", "application/json; charset=utf-8"); //Sets content type header
-            HttpResponse response;
-            try {
-                StringEntity se = new StringEntity(p.getPost().toString()); //turns json to string
-                se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json")); //encodes as "json type"
-                request.setEntity(se); //sets entity
-                response = client.execute(request);
-                InputStream in = response.getEntity().getContent();
-                BufferedReader sr = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-                StringBuilder res = new StringBuilder();
-                String inputStr;
-                while((inputStr = sr.readLine()) != null)
-                    res.append(inputStr);
-                Log.d("ChromoServer POST", res.toString());
-                return res.toString();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (ClientProtocolException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
+        protected String doInBackground(HttpPost... params) {
+            return getJSONResponse(params[0]);
         }
         protected void onPostExecute(String response){
             progressDialog.dismiss();
@@ -256,8 +224,8 @@ public class ChromoServer{
                     Log.d("ChromoServ Error", "Bad JSON");
                 }
             }
-            if(currentActivity instanceof MainActivity){
-                ((MainActivity) currentActivity).onTaskCompleted(p);
+            if(currentActivity instanceof ChromoComplete){
+                ((ChromoComplete) currentActivity).onTaskCompleted(p);
             }
         }
     }
@@ -268,7 +236,7 @@ public class ChromoServer{
      * Stores the registration ID and the app versionCode in the application's
      * shared preferences.
      */
-    private void registerInBackground() {
+    private void GCMregisterInBackground() {
         new AsyncTask<Void, Void, String>() {
             @Override
             protected void onPreExecute()
@@ -322,6 +290,63 @@ public class ChromoServer{
 
         }.execute(null, null, null);
     }
+
+    //Prepares Credentials for secure JSON Auth
+    private JSONObject prepareSecureJSONAuth(HashMap<String, String> params)
+    {
+        params.put("id", this.deviceID);
+        params.put("token", this.uniqueToken);
+        return new JSONObject(params);
+    }
+    private JSONObject prepareSecureJSONAuth()
+    {
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("id", this.deviceID);
+        params.put("token", this.uniqueToken);
+        return new JSONObject(params);
+    }
+
+    //Prepares a Secure Post request to be executed
+    private HttpPost prepareSecurePostRequest(JSONObject json, String url) throws UnsupportedEncodingException {
+        //Prepare Connection
+        int TIMEOUT_MILLISEC = 10000;  // = 10 seconds
+        HttpParams httpParams = new BasicHttpParams();
+        HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT_MILLISEC);
+        HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT_MILLISEC);
+        HttpPost request = new HttpPost(url); //sets URL for POST request
+        request.setHeader("Content-Type", "application/json; charset=utf-8"); //Sets content type header
+        StringEntity se = new StringEntity(json.toString()); //turns json to string
+        se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json")); //encodes as "json type"
+        request.setEntity(se); //sets entity
+        return request;
+    }
+
+    //Parses String buffers to get response from request
+    private String getJSONResponse(HttpPost post){
+
+        HttpClient client = new DefaultHttpClient(post.getParams());
+        try {
+            HttpResponse response = client.execute(post);
+            InputStream in = response.getEntity().getContent();
+            BufferedReader sr = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            StringBuilder res = new StringBuilder();
+            String inputStr;
+            while((inputStr = sr.readLine()) != null)
+                res.append(inputStr);
+            Log.d("ChromoServer POST", res.toString());
+            return res.toString();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
 
     /**
      * Stores the registration ID and the app versionCode in the application's
