@@ -6,11 +6,16 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.MalformedJsonException;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chromocam.chromocam.EventContent;
+import com.chromocam.chromocam.EventListTab;
 import com.chromocam.chromocam.MainActivity;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
@@ -34,9 +39,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -110,7 +117,7 @@ public class ChromoServer{
             Log.d("Chromo Server", "Current target:" + getSharedPrefInfo(context, PROPERTY_TARGET));
             Log.d("Chromo Server", "Current device id:" + getSharedPrefInfo(context, PROPERTY_DEVICE_ID));
 
-            Payload registered = new Payload(null, null, Purpose.REGISTERED);
+            Payload registered = new Payload(null, Purpose.REGISTERED);
             registered.setResult(true);
 
             if(currentActivity instanceof ChromoComplete){
@@ -158,11 +165,10 @@ public class ChromoServer{
             e.printStackTrace();
         }
 
-        Payload p = new Payload(new JSONObject(params), this.targetURLroot + registerString, Purpose.REGISTER);
+        Payload p = new Payload(this.targetURLroot + registerString, Purpose.REGISTER);
         Log.d("Chromo Server", "Executing Async POST Request");
         Log.d("Chromo Server", "Parameters: " + params.get("hashedPass") + ", " + this.targetURLroot + registerString);
         Log.d("Chromo Server", "GCM Registration ID: " + regid);
-        Log.d("Chromo Server", "JSON Output: " + p.getPost().toString());
 
         try {
              new processPostRequest().execute(prepareSecurePostRequest(new JSONObject(params), this.targetURLroot + registerString));
@@ -186,6 +192,8 @@ public class ChromoServer{
 
         return sb.toString();
     }
+
+    //standard post request
     private class processPostRequest extends AsyncTask<HttpPost, Void, String>
     {
         Payload p;
@@ -209,7 +217,7 @@ public class ChromoServer{
         protected void onPostExecute(String response){
             progressDialog.dismiss();
             if(response.toUpperCase().contains("FORBIDDEN")){
-                Toast.makeText(currentActivity, "Registration failed!", Toast.LENGTH_LONG).show();
+                Toast.makeText(currentActivity, "Auth failed!", Toast.LENGTH_LONG).show();
                 p.setResult(false);
             } else {
                 try {
@@ -227,6 +235,106 @@ public class ChromoServer{
             if(currentActivity instanceof ChromoComplete){
                 ((ChromoComplete) currentActivity).onTaskCompleted(p);
             }
+        }
+    }
+
+    //getfile request
+    private class getFileTask extends AsyncTask<EventContent, Void, Bitmap>{
+        EventContent item;
+        @Override
+        protected Bitmap doInBackground(EventContent... item) {
+            this.item = item[0];
+            try {
+                JSONObject postData = prepareSecureJSONAuth();
+                HttpPost post = prepareSecurePostRequest(postData, getSharedPrefInfo(context, PROPERTY_TARGET) + "/files/" + this.item.getImageID());
+                HttpClient client = new DefaultHttpClient(post.getParams());
+                HttpResponse response = client.execute(post);
+                InputStream is = response.getEntity().getContent();
+                return BitmapFactory.decodeStream(is);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        //After execution, the event item's image is updated to contain the result
+        protected void onPostExecute(Bitmap result){
+            item.setImage(result);
+        }
+
+    }
+
+    public void loadList(int pageNo, int calling){
+        //Step 0. Initialize Payload
+        final Payload p;
+        //Step 1. Prepare the post request object
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("offset", Integer.toString((pageNo-1)*10));
+        switch (calling) {
+            case 1:
+                params.put("archive", "0");
+                p = new Payload(null, Purpose.GET_FILE_LIST_E);
+                break;
+            case 2:
+                params.put("archive", "1");
+                p = new Payload(null, Purpose.GET_FILE_LIST_A);
+                break;
+            default:
+                params.put("archive", "0");
+                p = new Payload(null, Purpose.GET_FILE_LIST_E);
+                break;
+        }
+        params.put("limit", "10");
+        JSONObject JSONpost = prepareSecureJSONAuth(params);
+        Log.d("Watcher", "Posting: " + JSONpost.toString());
+        //Step 2: AsyncTask
+        try {
+            new AsyncTask<HttpPost, Void, String>() {
+
+                @Override
+                protected String doInBackground(HttpPost... params) {
+                    return getJSONResponse(params[0]);
+                }
+
+                @Override
+                protected void onPostExecute(String files) {
+                    ArrayList<EventContent> list = new ArrayList<EventContent>();
+                    Log.d("Watcher", "LoadList reached onPostExecute");
+                    if(files.equalsIgnoreCase("forbidden")){
+                        Log.d("Error","FORBIDDEN JSON IS FUCKING UP");
+                    } else {
+                        Log.d("Watcher", "LoadList postExecute not Forbidden - good response");
+                        Log.d("Watcher", "Reseponse: " + files);
+                        try {
+                            JSONArray fileList = new JSONArray(files);
+                            JSONObject row;
+                            for (int i = 0; i < fileList.length(); i++) {
+                                row = fileList.getJSONObject(i);
+                                EventContent item = new EventContent(row);
+                                new getFileTask().execute(item);
+                                list.add(item);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
+                            Log.d("ERROR", "AYYYY");
+                            Log.d("Dump", files);
+                        }
+                        p.setContent(list);
+                        p.setResult(true);
+                        if (currentActivity instanceof ChromoComplete) {
+                            ((ChromoComplete) currentActivity).onTaskCompleted(p);
+                        }
+                    }
+                }
+
+            }.execute(prepareSecurePostRequest(JSONpost, getSharedPrefInfo(context, PROPERTY_TARGET) + "/files"), null, null);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
     }
 
@@ -294,15 +402,15 @@ public class ChromoServer{
     //Prepares Credentials for secure JSON Auth
     private JSONObject prepareSecureJSONAuth(HashMap<String, String> params)
     {
-        params.put("id", this.deviceID);
-        params.put("token", this.uniqueToken);
+        params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID));
+        params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN));
         return new JSONObject(params);
     }
     private JSONObject prepareSecureJSONAuth()
     {
         HashMap<String, String> params = new HashMap<String, String>();
-        params.put("id", this.deviceID);
-        params.put("token", this.uniqueToken);
+        params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID));
+        params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN));
         return new JSONObject(params);
     }
 

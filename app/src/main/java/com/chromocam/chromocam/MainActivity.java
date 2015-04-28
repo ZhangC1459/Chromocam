@@ -67,8 +67,8 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
     //Tab manager
     ActionBar actionBar;
     ActionBar.Tab events, archives, livestream;
-    ListFragment eventTab = new EventListTab();
-    Fragment archiveTab = new ArchiveListTab();
+    EventListTab eventTab = new EventListTab();
+    ArchiveListTab archiveTab = new ArchiveListTab();
     Fragment livestreamTab = new LiveStreamTab();
     String topLevelName = "activity_main";
 
@@ -300,7 +300,15 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         }
         else if(deviceRegistered && p.getPurpose() == Purpose.REGISTERED)
         {
-            //Do Nothing
+
+        }
+        else if(deviceRegistered && p.getPurpose() == Purpose.GET_FILE_LIST_E)
+        {
+            eventTab.loadListCallback(p.getContent());
+        }
+        else if(deviceRegistered && p.getPurpose() == Purpose.GET_FILE_LIST_A)
+        {
+            archiveTab.loadListCallback(p.getContent());
         }
         else {
             Log.d("REG DEBUG", "Registration failed ayyy");

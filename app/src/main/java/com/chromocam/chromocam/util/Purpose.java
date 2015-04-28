@@ -6,7 +6,8 @@ package com.chromocam.chromocam.util;
 public enum Purpose{
     REGISTER,
     REGISTERED,
-    GET_FILE_LIST,
+    GET_FILE_LIST_E,
+    GET_FILE_LIST_A,
     GET_SPECIFIC_FILE,
     SETTINGS
 

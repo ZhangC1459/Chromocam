@@ -50,7 +50,7 @@ public class EventListTab extends ListFragment {
         super.onCreate(savedInstanceState);
         serv = ((MainActivity) getActivity()).getServ();
 
-        //TODO serv.loadList(page); //Async through server
+        serv.loadList(page, 1); //Async through server
         //Set items to generate from
         //sets adapter to display content using a custom adapter with a custom list view
 
@@ -71,7 +71,7 @@ public class EventListTab extends ListFragment {
             public void onClick(View v) {
                 page++;
                 title.setText("Page " + page);
-                //TODO serv.loadList(page);
+                serv.loadList(page, 1);
                 CheckEnable();
             }
         });
@@ -82,14 +82,14 @@ public class EventListTab extends ListFragment {
 
                 page--;
                 title.setText("Page " + page);
-                //TODO serv.loadList(page);
+                serv.loadList(page, 1);
                 CheckEnable();
             }
         });
         return view;
     }
 
-    private void loadListCallback(ArrayList<EventContent> list){ //callback
+    public void loadListCallback(ArrayList<EventContent> list){ //callback
         items = list;
         mAdapter = new EventListAdapter(getActivity(), items);
         setListAdapter(mAdapter);
