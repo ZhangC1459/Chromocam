@@ -307,11 +307,12 @@ public class ChromoServer{
                         Log.d("Error","FORBIDDEN JSON IS FUCKING UP");
                     } else {
                         Log.d("Watcher", "LoadList postExecute not Forbidden - good response");
-                        Log.d("Watcher", "Reseponse: " + files);
+                        Log.d("Watcher", "Response: " + files);
                         try {
                             JSONArray fileList = new JSONArray(files);
                             JSONObject row;
                             for (int i = 0; i < fileList.length(); i++) {
+                                Log.d("Watcher", "adding item " + (i+1) + " to list");
                                 row = fileList.getJSONObject(i);
                                 EventContent item = new EventContent(row);
                                 new getFileTask().execute(item);
@@ -327,7 +328,7 @@ public class ChromoServer{
                         p.setContent(list);
                         p.setResult(true);
                         if (currentActivity instanceof ChromoComplete) {
-                            ((ChromoComplete) currentActivity).onTaskCompleted(p);
+                            ((MainActivity) currentActivity).onTaskCompleted(p);
                         }
                     }
                 }
