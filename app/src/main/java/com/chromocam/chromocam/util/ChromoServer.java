@@ -10,13 +10,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.util.MalformedJsonException;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chromocam.chromocam.EventContent;
 import com.chromocam.chromocam.EventListTab;
 import com.chromocam.chromocam.MainActivity;
+import com.chromocam.chromocam.R;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import org.apache.http.HttpResponse;
