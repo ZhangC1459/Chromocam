@@ -146,7 +146,7 @@ public class ArchiveListTab extends ListFragment {
             //Adds the bitmap to the intent
             intent.putExtra("image", b);
             //Adds the calling fragment type to the intent
-            intent.putExtra("calling", 1);
+            intent.putExtra("calling", 2);
             //Adds the image id for archive/unarchive purposes to the intent
             intent.putExtra("imageID", item.getImageID());
             //starts the activity
