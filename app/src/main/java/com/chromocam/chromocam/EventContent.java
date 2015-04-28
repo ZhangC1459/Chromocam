@@ -31,11 +31,11 @@ import java.util.List;
 import java.util.Map;
 
 public class EventContent{
-    public String imageID;
-    public String date;
-    public String time;
-    public Bitmap image;
-    public String url;
+    private String imageID;
+    private String date;
+    private String time;
+    private Bitmap image;
+    private String url;
     private String[] temp;
     //Constructor, accepts a JSONObject from the Async Loader method
     public EventContent(JSONObject input){
@@ -46,7 +46,6 @@ public class EventContent{
             e.printStackTrace();
         }
         this.url = "http://downyhouse.homenet.org:3000/files/" + this.imageID;
-        new getFileTask().execute(this); //This should be replaced with a call to the ChromoServer "getFile" asynctask, this object should be passed as the first param
         date = temp[0];
         time = temp[1];
     }
@@ -68,29 +67,13 @@ public class EventContent{
         return this.image;
     }
 
+    public String getUrl() { return this.url; }
+
+    public void setImage(Bitmap bitmap) { this.image = bitmap; }
+
     //This is the AsyncLoader for each individual file.  It is passed an instance of an EventItem
     // with a URL pre-loaded, and downloads the picture from that URL, returning it as a bitmap
 
     //This part should be moved to ChromoServer
-    private class getFileTask extends AsyncTask<EventContent, Void, Bitmap>{
-        @Override
-        protected Bitmap doInBackground(EventContent... item) {
-            try {
-                InputStream is = (InputStream) new URL(item[0].url).getContent();
-                return BitmapFactory.decodeStream(is);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-        //After execution, the event item's image is updated to contain the result
-        protected void onPostExecute(Bitmap result){
-            image = result;
-        }
 
-    }
 }

@@ -49,7 +49,7 @@ public class ArchiveListTab extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serv = ((MainActivity) getActivity()).getServ();
-        //TODO loadList(page); //Async through server
+        serv.loadList(page, 2);
         //Set items to generate from
         //sets adapter to display content using a custom adapter with a custom list view
 
@@ -63,8 +63,6 @@ public class ArchiveListTab extends ListFragment {
         title = (TextView) view.findViewById(R.id.title);
         CheckEnable();
         title.setText("Page " + page);
-
-        //TODO serv.loadList(page); //Async through server
         //Set items to generate from
         //sets adapter to display content using a custom adapter with a custom list view
 
@@ -74,7 +72,7 @@ public class ArchiveListTab extends ListFragment {
             public void onClick(View v) {
                 page++;
                 title.setText("Page " + page);
-                //TODO serv.loadList(page);
+                serv.loadList(page, 2);
                 CheckEnable();
             }
         });
@@ -85,13 +83,13 @@ public class ArchiveListTab extends ListFragment {
 
                 page--;
                 title.setText("Page " + page);
-                //TODO serv.loadList(page);
+                serv.loadList(page, 2);
                 CheckEnable();
             }
         });
         return view;
     }
-    private void loadListCallback(ArrayList<EventContent> list){ //callback
+    public void loadListCallback(ArrayList<EventContent> list){ //callback
         items = list;
         mAdapter = new EventListAdapter(getActivity(), items);
         setListAdapter(mAdapter);
