@@ -49,11 +49,7 @@ public class EventListTab extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         serv = ((MainActivity) getActivity()).getServ();
-
-        serv.loadList(page, 1); //Async through server
-        //Set items to generate from
-        //sets adapter to display content using a custom adapter with a custom list view
-
+        serv.loadList(page, 1); //Async load through server
 
     }
 
@@ -65,6 +61,7 @@ public class EventListTab extends ListFragment {
         title = (TextView) view.findViewById(R.id.title);
         CheckEnable();
         title.setText("Page " + page);
+
 
         btn_next.setOnClickListener(new View.OnClickListener() {
 
