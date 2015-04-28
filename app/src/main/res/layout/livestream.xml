@@ -1,10 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
-
-    <Button
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Stream"
-        android:id="@+id/livestreamButton" />
-</LinearLayout>
+        android:orientation="horizontal"
+        android:background="@color/blue"
+        android:padding="10dp">
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stream"
+            android:textSize="20sp"
+            android:gravity="center"/>
+
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@id/header">
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:text="Tap anywhere to start stream"
+            android:id="@+id/livestreamButton"
+            style="?android:attr/buttonBarButtonStyle" />
+    </RelativeLayout>
+</RelativeLayout>

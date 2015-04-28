@@ -71,9 +71,5 @@ public class EventContent{
 
     public void setImage(Bitmap bitmap) { this.image = bitmap; }
 
-    //This is the AsyncLoader for each individual file.  It is passed an instance of an EventItem
-    // with a URL pre-loaded, and downloads the picture from that URL, returning it as a bitmap
-
-    //This part should be moved to ChromoServer
 
 }
