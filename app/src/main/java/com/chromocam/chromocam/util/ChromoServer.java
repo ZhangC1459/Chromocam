@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -59,7 +60,7 @@ public class ChromoServer{
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
 
-    private static final String PROPERTY_IS_REGISTERED = "is_registered";
+    private static final String PROPERTY_IS_REGISTERED = "login_settings";
     private static final String PROPERTY_TOKEN = "token";
     private static final String PROPERTY_TARGET = "target";
     private static final String PROPERTY_DEVICE_ID = "device_id";
@@ -99,23 +100,23 @@ public class ChromoServer{
         this.currentActivity = current;
         this.context = context;
 
-        Log.d("Chromo Server", "Current token:" + getSharedPrefInfo(context, PROPERTY_TOKEN));
-        Log.d("Chromo Server", "Current target:" + getSharedPrefInfo(context, PROPERTY_TARGET));
-        Log.d("Chromo Server", "Current device id:" + getSharedPrefInfo(context, PROPERTY_DEVICE_ID));
+        Log.d("Chromo Server", "Current token:" + getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
+        Log.d("Chromo Server", "Current target:" + getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(this.context)));
+        Log.d("Chromo Server", "Current device id:" + getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
 
-        if(this.getSharedPrefInfo(this.context, PROPERTY_REG_ID).isEmpty())
+        if(this.getSharedPrefInfo(this.context, PROPERTY_REG_ID,getGcmPreferences(this.context)).isEmpty())
         {
             Log.d("GCM Push Reg", "Starting GCM Push Registration");
             this.GCMregisterInBackground();
         }
 
         //Check for Preset Information
-        else if(!this.getSharedPrefInfo(this.context, PROPERTY_IS_REGISTERED).isEmpty())
+        else if(getSettingsPreferences(this.context).getBoolean(PROPERTY_IS_REGISTERED, false))
         {
             Log.d("Chromo Server", "ChromoServer Registration Information Found");
-            Log.d("Chromo Server", "Current token:" + getSharedPrefInfo(context, PROPERTY_TOKEN));
-            Log.d("Chromo Server", "Current target:" + getSharedPrefInfo(context, PROPERTY_TARGET));
-            Log.d("Chromo Server", "Current device id:" + getSharedPrefInfo(context, PROPERTY_DEVICE_ID));
+            Log.d("Chromo Server", "Current token:" + getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
+            Log.d("Chromo Server", "Current target:" + getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(this.context)));
+            Log.d("Chromo Server", "Current device id:" + getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
 
             Payload registered = new Payload(null, Purpose.REGISTERED);
             registered.setResult(true);
@@ -146,7 +147,7 @@ public class ChromoServer{
     //Register Device to Server
     private void registerDevice(String password)
     {
-        this.regid = this.getSharedPrefInfo(this.context, PROPERTY_REG_ID);
+        this.regid = this.getSharedPrefInfo(this.context, PROPERTY_REG_ID,getGcmPreferences(this.context));
 
         if(regid.isEmpty())
         {
@@ -216,6 +217,7 @@ public class ChromoServer{
         }
         protected void onPostExecute(String response){
             progressDialog.dismiss();
+            p = new Payload(null, Purpose.REGISTER);
             if(response.toUpperCase().contains("FORBIDDEN")){
                 Toast.makeText(currentActivity, "Auth failed!", Toast.LENGTH_LONG).show();
                 p.setResult(false);
@@ -246,7 +248,7 @@ public class ChromoServer{
             this.item = item[0];
             try {
                 JSONObject postData = prepareSecureJSONAuth();
-                HttpPost post = prepareSecurePostRequest(postData, getSharedPrefInfo(context, PROPERTY_TARGET) + "/files/" + this.item.getImageID());
+                HttpPost post = prepareSecurePostRequest(postData, getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(context)) + "/files/" + this.item.getImageID());
                 HttpClient client = new DefaultHttpClient(post.getParams());
                 HttpResponse response = client.execute(post);
                 InputStream is = response.getEntity().getContent();
@@ -333,7 +335,7 @@ public class ChromoServer{
                     }
                 }
 
-            }.execute(prepareSecurePostRequest(JSONpost, getSharedPrefInfo(context, PROPERTY_TARGET) + "/files"), null, null);
+            }.execute(prepareSecurePostRequest(JSONpost, getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(this.context)) + "/files"), null, null);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -403,15 +405,15 @@ public class ChromoServer{
     //Prepares Credentials for secure JSON Auth
     private JSONObject prepareSecureJSONAuth(HashMap<String, String> params)
     {
-        params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID));
-        params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN));
+        params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
+        params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
         return new JSONObject(params);
     }
     private JSONObject prepareSecureJSONAuth()
     {
         HashMap<String, String> params = new HashMap<String, String>();
-        params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID));
-        params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN));
+        params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
+        params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
         return new JSONObject(params);
     }
 
@@ -476,21 +478,21 @@ public class ChromoServer{
 
     private void storeCredentials(Context context, String token, String target, String deviceID)
     {
-        final SharedPreferences prefs = getGcmPreferences(context);
+        final SharedPreferences prefs = getSettingsPreferences(context);
         Log.d("Credentials", "Token and Target now stored for later use");
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(PROPERTY_TOKEN, token);
         editor.putString(PROPERTY_TARGET, target);
         editor.putString(PROPERTY_DEVICE_ID, deviceID);
-        editor.putString(PROPERTY_IS_REGISTERED, "true");
+        editor.putBoolean(PROPERTY_IS_REGISTERED, true);
 
         editor.commit();
 
     }
 
-    private String getSharedPrefInfo(Context context, String sharedPrefName)
+    private String getSharedPrefInfo(Context context, String sharedPrefName, SharedPreferences sharedPref)
     {
-        final SharedPreferences prefs = getGcmPreferences(context);
+        final SharedPreferences prefs = sharedPref;
         String result = prefs.getString(sharedPrefName, "");
         if (result.isEmpty()) {
             Log.i(TAG, sharedPrefName +" not found.");
@@ -499,7 +501,7 @@ public class ChromoServer{
         // Check if app was updated; if so, it must clear the registration ID
         // since the existing regID is not guaranteed to work with the new
         // app version.
-        int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+        int registeredVersion = getGcmPreferences(context).getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
         int currentVersion = getAppVersion(context);
         if (registeredVersion != currentVersion) {
             Log.i(TAG, "App version changed.");
@@ -557,6 +559,11 @@ public class ChromoServer{
         // how you store the regID in your app is up to you.
         return context.getSharedPreferences(MainActivity.class.getSimpleName(),
                 Context.MODE_PRIVATE);
+    }
+
+    private SharedPreferences getSettingsPreferences(Context context)
+    {
+        return PreferenceManager.getDefaultSharedPreferences(context);
     }
 
 }

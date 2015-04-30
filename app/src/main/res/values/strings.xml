@@ -31,6 +31,10 @@
     <string name="notification_settings_subtitle">Movement</string>
     <string name="notification_settings_summary">Movement detected notifications</string>
 
+    <string name="login_settings_title">Auto-Login</string>
+    <string name="login_settings_subtitle">Automatic Login</string>
+    <string name="login_settings_summary">Automatically login when Chromocam is opened</string>
+
     <string name="livestreamButton">Watch Stream</string>
 
     <string name="title_activity_display_picture">View Image</string>

@@ -37,5 +37,12 @@
             android:summary="@string/notification_settings_summary" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/login_settings_title">
+        <SwitchPreference
+            android:key="login_settings"
+            android:title="@string/login_settings_subtitle"
+            android:summary="@string/login_settings_summary" />
+    </PreferenceCategory>
+
     
 </PreferenceScreen>
