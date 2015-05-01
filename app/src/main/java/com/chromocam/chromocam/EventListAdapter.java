@@ -87,6 +87,7 @@ public class EventListAdapter extends ArrayAdapter<EventContent> {
                 //After execution, the event item's image is updated to contain the result
                 protected void onPostExecute (Bitmap result){
                     holder.bar.setVisibility(View.GONE);
+                    item.setImage(result);
                     holder.image.setImageBitmap(result);
                     holder.image.setVisibility(View.VISIBLE);
                 }
