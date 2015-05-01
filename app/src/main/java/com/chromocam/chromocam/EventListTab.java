@@ -88,7 +88,7 @@ public class EventListTab extends ListFragment {
 
     public void loadListCallback(ArrayList<EventContent> list){ //callback
         items = list;
-        mAdapter = new EventListAdapter(getActivity(), items);
+        mAdapter = new EventListAdapter(getActivity(), items, serv);
         setListAdapter(mAdapter);
         mAdapter.notifyDataSetChanged();
         if(items.size()<10){

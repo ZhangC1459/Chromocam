@@ -240,35 +240,6 @@ public class ChromoServer{
         }
     }
 
-    //getfile request
-    private class getFileTask extends AsyncTask<EventContent, Void, Bitmap>{
-        EventContent item;
-        @Override
-        protected Bitmap doInBackground(EventContent... item) {
-            this.item = item[0];
-            try {
-                JSONObject postData = prepareSecureJSONAuth();
-                HttpPost post = prepareSecurePostRequest(postData, getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(context)) + "/files/" + this.item.getImageID());
-                HttpClient client = new DefaultHttpClient(post.getParams());
-                HttpResponse response = client.execute(post);
-                InputStream is = response.getEntity().getContent();
-                return BitmapFactory.decodeStream(is);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-        //After execution, the event item's image is updated to contain the result
-        protected void onPostExecute(Bitmap result){
-            item.setImage(result);
-        }
-
-    }
-
     public void loadList(int pageNo, int calling){
         //Step 0. Initialize Payload
         final Payload p;
@@ -317,7 +288,6 @@ public class ChromoServer{
                                 Log.d("Watcher", "adding item " + (i+1) + " to list");
                                 row = fileList.getJSONObject(i);
                                 EventContent item = new EventContent(row);
-                                new getFileTask().execute(item);
                                 list.add(item);
                             }
                         } catch (JSONException e) {
@@ -403,13 +373,13 @@ public class ChromoServer{
     }
 
     //Prepares Credentials for secure JSON Auth
-    private JSONObject prepareSecureJSONAuth(HashMap<String, String> params)
+    public JSONObject prepareSecureJSONAuth(HashMap<String, String> params)
     {
         params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
         params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
         return new JSONObject(params);
     }
-    private JSONObject prepareSecureJSONAuth()
+    public JSONObject prepareSecureJSONAuth()
     {
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
@@ -418,7 +388,7 @@ public class ChromoServer{
     }
 
     //Prepares a Secure Post request to be executed
-    private HttpPost prepareSecurePostRequest(JSONObject json, String url) throws UnsupportedEncodingException {
+    public HttpPost prepareSecurePostRequest(JSONObject json, String url) throws UnsupportedEncodingException {
         //Prepare Connection
         int TIMEOUT_MILLISEC = 10000;  // = 10 seconds
         HttpParams httpParams = new BasicHttpParams();
@@ -566,5 +536,8 @@ public class ChromoServer{
         return PreferenceManager.getDefaultSharedPreferences(context);
     }
 
+    public String getTargetURL () {
+        return getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(context));
+    }
 }
 

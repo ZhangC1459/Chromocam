@@ -14,13 +14,20 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
         />
+
+    <ProgressBar
+        android:id="@+id/loader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true" />
     <TextView
         android:id="@+id/eventID"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/eventID"
-        android:layout_toEndOf="@id/thumbnail"/>
+        android:layout_toEndOf="@id/thumbnail"
+        android:layout_toRightOf="@id/thumbnail"/>
     <TextView
         android:id="@+id/dateTime"
         android:layout_width="fill_parent"

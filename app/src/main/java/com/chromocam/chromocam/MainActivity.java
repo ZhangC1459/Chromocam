@@ -45,24 +45,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class MainActivity extends Activity implements ChromoComplete, EventListTab.OnEventSelectionListener, ArchiveListTab.OnEventSelectionListener, View.OnClickListener{
-
    //Push Variables
-
    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-
-
 
     /**
      * Tag used on log messages.
      */
     static final String TAG = "Chromocam";
-
     Context context;
-
-
-
-
-
 
     //Tab manager
     ActionBar actionBar;
