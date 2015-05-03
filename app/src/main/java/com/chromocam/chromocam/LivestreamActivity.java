@@ -8,33 +8,107 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.ArrayList;
 
 public class LivestreamActivity extends Activity {
 
     // Declare variables
     private ProgressDialog progressDialog;
+    private String deviceID;
+    private String uniqueToken;
     ImageView mjpegView;
+    Button btn_snap;
     MJPEGasyncTask task;
 
     // Stream Source
-    String videoURL = "http://downyhouse.homenet.org:3000/stream2";
+    String videoURL = "https:/chromocam.co:3000/stream2";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Get the layout from video_main.xml
-        setContentView(R.layout.livestreamvideo);
-
+        setContentView(R.layout.livestreamVideo);
+        this.deviceID = getIntent().getExtras().getString("ID");
+        this.uniqueToken = getIntent().getExtras().getString("token");
         // Find your VideoView in your video_main.xml layout
         this.mjpegView = (ImageView) findViewById(R.id.mjpegView);
+        this.btn_snap = (Button) findViewById(R.id.snapshot);
+
+        btn_snap.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                try{
+                    new AsyncTask<Void, Void, String>() {
+
+                        @Override
+                        protected String doInBackground (Void...params){
+                            try {
+                                JSONObject json = new JSONObject();
+                                json.put("id", deviceID);
+                                json.put("token", uniqueToken);
+                                int TIMEOUT_MILLISEC = 10000;  // = 10 seconds
+                                HttpParams httpParams = new BasicHttpParams();
+                                HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT_MILLISEC);
+                                HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT_MILLISEC);
+                                HttpPost request = new HttpPost("https://chromocam.co:3000/motion/snapshot"); //sets URL for POST request
+                                request.setHeader("Content-Type", "application/json; charset=utf-8"); //Sets content type header
+                                StringEntity se = new StringEntity(json.toString()); //turns json to string
+                                se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json")); //encodes as "json type"
+                                request.setEntity(se); //sets entity
+                                HttpClient client = new DefaultHttpClient(request.getParams());
+                                HttpResponse response = client.execute(request);
+                                InputStream in = response.getEntity().getContent();
+                                BufferedReader sr = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                                StringBuilder res = new StringBuilder();
+                                String inputStr;
+                                while((inputStr = sr.readLine()) != null)
+                                    res.append(inputStr);
+                                Log.d("ChromoServer POST", res.toString());
+                                return res.toString();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            return null;
+                        }
+                        //After execution, make toast
+                        protected void onPostExecute (String result){
+                            if(result.contains("true")){
+                                makingToast("Success!");
+                            } else {
+                                makingToast("Error");
+                            }
+                        }
+                    }.execute();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         try {
             Log.d("Livestream", "Initializing MJPEG Stream");
@@ -71,7 +145,9 @@ public class LivestreamActivity extends Activity {
 
         Log.d("BACK-PRESSED-DEBUG", "Livestream Stopping");
     }
-
+    public void makingToast(String status){
+        Toast.makeText(this, status, Toast.LENGTH_LONG).show();
+    }
     //MJPEG Convenience Class
     private class MJPEG {
         //Variables

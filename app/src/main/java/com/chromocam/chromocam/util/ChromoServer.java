@@ -539,5 +539,13 @@ public class ChromoServer{
     public String getTargetURL () {
         return getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(context));
     }
+
+    public String getDeviceID(){
+        return getSharedPrefInfo(context, PROPERTY_DEVICE_ID, getSettingsPreferences(context));
+    }
+
+    public String getUniqueToken(){
+        return getSharedPrefInfo(context, PROPERTY_TOKEN, getSettingsPreferences(context));
+    }
 }
 
