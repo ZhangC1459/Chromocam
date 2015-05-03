@@ -70,7 +70,7 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
 
     //Seems legit
     private String secretToken = "";
-    private String targetDomain = "http://downyhouse.homenet.org:3000";
+    private String targetDomain = "https://chromocam.co:3000";
     private String password = "asdf123";
     private AlertDialog.Builder quitDialog;
 
