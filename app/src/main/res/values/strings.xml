@@ -27,9 +27,9 @@
     <string name="deadzone_summary">9 Quadrants can be disabled in detecting motion</string>
     <string name="deadzone_dialogTitle">Enter digit for each quadrant to be disabled</string>
 
-    <string name="notification_settings_title">Push Notification Settings</string>
-    <string name="notification_settings_subtitle">Movement</string>
-    <string name="notification_settings_summary">Movement detected notifications</string>
+    <string name="notifications_enabled_title">Push Notification Settings</string>
+    <string name="notifications_enabled_subtitle">Movement</string>
+    <string name="notifications_enabled_summary">Movement detected notifications</string>
 
     <string name="login_settings_title">Auto-Login</string>
     <string name="login_settings_subtitle">Automatic Login</string>
@@ -48,4 +48,10 @@
     <string name="imgContentDesc">Event Thumbnail</string>
     <string name="btnNext">Next</string>
     <string name="btnPrev">Prev</string>
+
+    <string name="app_settings_title">App Settings</string>
+    <string name="panel_num_title">Panels</string>
+    <string name="panel_num_summary">Number of panels to be displayed per page</string>
+    <string name="panel_num_dialogTitle">Enter the amount of panels to be displayed in the Event and Archive list view</string>
+
 </resources>

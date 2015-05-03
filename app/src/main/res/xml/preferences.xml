@@ -32,17 +32,28 @@
 
     <PreferenceCategory android:title="@string/notification_settings_title">
         <SwitchPreference
-            android:key="notification_settings"
-            android:title="@string/notification_settings_subtitle"
-            android:summary="@string/notification_settings_summary" />
+            android:key="notifications_enabled"
+            android:title="@string/notifications_enabled_subtitle"
+            android:summary="@string/notifications_enabled_summary"
+            android:defaultValue="@bool/notifications_enabled_default"
+            />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/login_settings_title">
         <SwitchPreference
             android:key="login_settings"
             android:title="@string/login_settings_subtitle"
-            android:summary="@string/login_settings_summary" />
+            android:summary="@string/login_settings_summary"
+            android:defaultValue="@bool/login_settings_default"/>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/app_settings_title">
+        <EditTextPreference
+            android:title="@string/panel_num_title"
+            android:key="panel_num"
+            android:summary="@string/panel_num_summary"
+            android:dialogTitle="@string/panel_num_dialogTitle"
+            android:defaultValue="@integer/panel_num_default" />
+    </PreferenceCategory>
     
 </PreferenceScreen>
