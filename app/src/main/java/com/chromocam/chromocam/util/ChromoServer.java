@@ -49,37 +49,42 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ChromoServer{
-    /**
-     * Tag used on log messages.
-     */
+public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeListener{
+
+    //Logging
     static final String TAG = "Chromocam";
 
-    //Push Variables
-    public static final String EXTRA_MESSAGE = "message";
+    //Preferences Settings
+    //Notifcations
+    public static final String PROPERTY_NOTIFICATIONS_ENABLED = "notifications_enabled";
+    public static final String PROPERTY_NOTIFICATIONS_REGISTERED = "notifications_registered";
+    //Camera Settings
+    public static final String PROPERTY_DEADAZONE_KEY = "deadzone_key";
+    public static final String PROPERTY_RESOLUTION_KEY = "resolution_key";
+    public static final String PROPERTY_FRAMERATE_KEY = "framerate_key";
+    public static final String PROPERTY_DELAY_KEY = "delay_key";
+    //App Settings
+    public static final String PROPERTY_PANEL_NUM = "panel_num";
+
+    //Registration Properties
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-
     private static final String PROPERTY_IS_REGISTERED = "login_settings";
     private static final String PROPERTY_TOKEN = "token";
     private static final String PROPERTY_TARGET = "target";
     private static final String PROPERTY_DEVICE_ID = "device_id";
 
+    //Registration ID
     String regid;
-
-    TextView mDisplay;
     GoogleCloudMessaging gcm;
-    AtomicInteger msgId = new AtomicInteger();
-    Context context;
 
-    /**
-     * Substitute you own sender ID here. This is the project number you got
-     * from the API Console, as described in "Getting Started."
-     */
-    String SENDER_ID = "1026539547295";
-
-    private ProgressDialog progressDialog;
+    //Scope
+    private Context context;
     private Activity currentActivity;
+
+    //Push Notification Project Key
+    private String SENDER_ID = "1026539547295";
+    private ProgressDialog progressDialog;
 
     //Registration Parameters
     private String uniqueToken;
@@ -87,11 +92,10 @@ public class ChromoServer{
     private String deviceID;
 
     private URL targetURL;
-
     private boolean connectedToServer;
+
     //Async Information
     protected String target;
-
     protected JSONObject payload;
 
 
@@ -100,11 +104,13 @@ public class ChromoServer{
         this.currentActivity = current;
         this.context = context;
 
-        Log.d("Chromo Server", "Current token:" + getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
-        Log.d("Chromo Server", "Current target:" + getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(this.context)));
-        Log.d("Chromo Server", "Current device id:" + getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
+        //Register Listener for changes in Preferences Settings
+        getSettingsPreferences(context).registerOnSharedPreferenceChangeListener(this);
 
-        if(this.getSharedPrefInfo(this.context, PROPERTY_REG_ID,getGcmPreferences(this.context)).isEmpty())
+        this.logRegistrationInfo();
+        this.logPreferences();
+
+        if(this.getSharedPrefInfoString(PROPERTY_REG_ID, getGcmPreferences(this.context)).isEmpty())
         {
             Log.d("GCM Push Reg", "Starting GCM Push Registration");
             this.GCMregisterInBackground();
@@ -113,22 +119,62 @@ public class ChromoServer{
         //Check for Preset Information
         else if(getSettingsPreferences(this.context).getBoolean(PROPERTY_IS_REGISTERED, false))
         {
-            Log.d("Chromo Server", "ChromoServer Registration Information Found");
-            Log.d("Chromo Server", "Current token:" + getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
-            Log.d("Chromo Server", "Current target:" + getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(this.context)));
-            Log.d("Chromo Server", "Current device id:" + getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
-
             Payload registered = new Payload(null, Purpose.REGISTERED);
             registered.setResult(true);
+
+            this.logRegistrationInfo();
+            this.logPreferences();
 
             if(currentActivity instanceof ChromoComplete){
                 ((ChromoComplete) currentActivity).onTaskCompleted(registered);
             }
 
         }
+
+
     }
 
 
+    private void logRegistrationInfo()
+    {
+        Log.d(TAG, "Current Registration Information");
+        Log.d("Chromo Server", "Current token:" + getSharedPrefInfoString(PROPERTY_TOKEN, getSettingsPreferences(this.context)));
+        Log.d("Chromo Server", "Current target:" + getSharedPrefInfoString(PROPERTY_TARGET, getSettingsPreferences(this.context)));
+        Log.d("Chromo Server", "Current device id:" + getSharedPrefInfoString(PROPERTY_DEVICE_ID, getSettingsPreferences(this.context)));
+    }
+
+    public void logPreferences()
+    {
+        Log.d("ChromoServer", "Current Preferences");
+        Log.d("ChromoServer", "Preferences:" + this.getSettingsPreferences(this.context).getAll().toString());
+    }
+
+    //Registers for Push Notifications if Necessary
+    public void registerPushNotifcations()
+    {
+        //Check if App Versions Mismatched
+        int registeredVersion = getGcmPreferences(this.context).getInt(this.PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+        int currentVersion = getAppVersion(this.context);
+
+        //If Version Mismatch
+        if (registeredVersion != currentVersion) {
+            Log.d(TAG, "App version changed.");
+            try {
+                this.gcm.unregister();
+                this.getGcmPreferences(this.context).edit().putString(PROPERTY_REG_ID, "");
+            } catch (IOException e) {
+                Log.d(TAG, "Could not unregister ");
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        if(this.getSharedPrefInfoString(PROPERTY_REG_ID, getGcmPreferences(this.context)).isEmpty())
+        {
+            Log.d("GCM Push Reg", "Starting GCM Push Registration");
+            this.GCMregisterInBackground();
+        }
+    }
 
 
     //Instantiation
@@ -147,13 +193,13 @@ public class ChromoServer{
     //Register Device to Server
     private void registerDevice(String password)
     {
-        this.regid = this.getSharedPrefInfo(this.context, PROPERTY_REG_ID,getGcmPreferences(this.context));
-
-        if(regid.isEmpty())
-        {
-            Log.d("ChromoServer Reg", "Push Reg ID Not found");
-            return;
-        }
+//        this.regid = this.getSharedPrefInfo(this.context, PROPERTY_REG_ID,getGcmPreferences(this.context));
+//
+//        if(regid.isEmpty())
+//        {
+//            Log.d("ChromoServer Reg", "Push Reg ID Not found");
+//            return;
+//        }
 
         String registerString = "/devices/register";
         Map<String, String> params = new HashMap<String, String>();
@@ -169,7 +215,7 @@ public class ChromoServer{
         Payload p = new Payload(this.targetURLroot + registerString, Purpose.REGISTER);
         Log.d("Chromo Server", "Executing Async POST Request");
         Log.d("Chromo Server", "Parameters: " + params.get("hashedPass") + ", " + this.targetURLroot + registerString);
-        Log.d("Chromo Server", "GCM Registration ID: " + regid);
+        //Log.d("Chromo Server", "GCM Registration ID: " + regid);
 
         try {
              new processPostRequest().execute(prepareSecurePostRequest(new JSONObject(params), this.targetURLroot + registerString));
@@ -192,6 +238,45 @@ public class ChromoServer{
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        Log.d("Preference Changed:", key);
+
+        //Push Notification Toggled
+        if(key.equals(PROPERTY_NOTIFICATIONS_ENABLED))
+        {
+
+        }
+        else if(key.equals(PROPERTY_DEADAZONE_KEY))
+        {
+
+        }
+        else if(key.equals(PROPERTY_RESOLUTION_KEY))
+        {
+
+        }
+        else if(key.equals(PROPERTY_FRAMERATE_KEY))
+        {
+
+        }
+        else if(key.equals(PROPERTY_DELAY_KEY))
+        {
+
+        }
+        else if(key.equals(PROPERTY_PANEL_NUM))
+        {
+
+        }
+        else if(key.equals(PROPERTY_IS_REGISTERED))
+        {
+
+        }
+
+
+
+
     }
 
     //standard post request
@@ -230,6 +315,9 @@ public class ChromoServer{
                     p.setResult(true);
                     storeCredentials(context, uniqueToken, targetURLroot, deviceID);
                     Toast.makeText(currentActivity, "Registration Success!", Toast.LENGTH_LONG).show();
+                    //Register Push Notifications on Registration Success
+                    registerPushNotifcations();
+
                 } catch (JSONException e) {
                     Log.d("ChromoServ Error", "Bad JSON");
                 }
@@ -305,7 +393,7 @@ public class ChromoServer{
                     }
                 }
 
-            }.execute(prepareSecurePostRequest(JSONpost, getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(this.context)) + "/files"), null, null);
+            }.execute(prepareSecurePostRequest(JSONpost, getSharedPrefInfoString(PROPERTY_TARGET, getSettingsPreferences(this.context)) + "/files"), null, null);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -341,16 +429,6 @@ public class ChromoServer{
                     }
                     regid = gcm.register(SENDER_ID);
                     msg = "Device registered, registration ID=" + regid;
-
-                    // You should send the registration ID to your server over HTTP, so it
-                    // can use GCM/HTTP or CCS to send messages to your app.
-                    //sendRegistrationIdToBackend();
-
-                    // For this demo: we don't need to send it because the device will send
-                    // upstream messages to a server that echo back the message using the
-                    // 'from' address in the message.
-
-                    // Persist the regID - no need to register again.
                     storeRegistrationId(context, regid);
                 } catch (IOException ex) {
                     msg = "Error :" + ex.getMessage();
@@ -375,15 +453,15 @@ public class ChromoServer{
     //Prepares Credentials for secure JSON Auth
     public JSONObject prepareSecureJSONAuth(HashMap<String, String> params)
     {
-        params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
-        params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
+        params.put("id", getSharedPrefInfoString(PROPERTY_DEVICE_ID, getSettingsPreferences(this.context)));
+        params.put("token", getSharedPrefInfoString(PROPERTY_TOKEN, getSettingsPreferences(this.context)));
         return new JSONObject(params);
     }
     public JSONObject prepareSecureJSONAuth()
     {
         HashMap<String, String> params = new HashMap<String, String>();
-        params.put("id", getSharedPrefInfo(context, PROPERTY_DEVICE_ID,getSettingsPreferences(this.context)));
-        params.put("token", getSharedPrefInfo(context, PROPERTY_TOKEN,getSettingsPreferences(this.context)));
+        params.put("id", getSharedPrefInfoString(PROPERTY_DEVICE_ID, getSettingsPreferences(this.context)));
+        params.put("token", getSharedPrefInfoString(PROPERTY_TOKEN, getSettingsPreferences(this.context)));
         return new JSONObject(params);
     }
 
@@ -454,58 +532,50 @@ public class ChromoServer{
         editor.putString(PROPERTY_TOKEN, token);
         editor.putString(PROPERTY_TARGET, target);
         editor.putString(PROPERTY_DEVICE_ID, deviceID);
-        editor.putBoolean(PROPERTY_IS_REGISTERED, true);
-
         editor.commit();
 
     }
 
-    private String getSharedPrefInfo(Context context, String sharedPrefName, SharedPreferences sharedPref)
+    //Get SharedPreferences Value
+    private String getSharedPrefInfoString(String sharedPrefName, SharedPreferences sharedPref)
     {
-        final SharedPreferences prefs = sharedPref;
-        String result = prefs.getString(sharedPrefName, "");
-        if (result.isEmpty()) {
-            Log.i(TAG, sharedPrefName +" not found.");
-            return "";
-        }
-        // Check if app was updated; if so, it must clear the registration ID
-        // since the existing regID is not guaranteed to work with the new
-        // app version.
-        int registeredVersion = getGcmPreferences(context).getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
-        int currentVersion = getAppVersion(context);
-        if (registeredVersion != currentVersion) {
-            Log.i(TAG, "App version changed.");
-            return "";
-        }
+        String result = sharedPref.getString(sharedPrefName, "");
+        if (result.isEmpty()) {Log.i(TAG, sharedPrefName +" not found.");}
+        return result;
+    }
+    private Integer getSharedPrefInfoInteger(String sharedPrefName, SharedPreferences sharedPref)
+    {
+        Integer result = sharedPref.getInt(sharedPrefName, 0);
+        if (result == 0) {Log.i(TAG, sharedPrefName +" not found.");}
+        return result;
+    }
+    private Boolean getSharedPrefInfoBoolean(String sharedPrefName, SharedPreferences sharedPref)
+    {
+        Boolean result = sharedPref.getBoolean(sharedPrefName, false);
+        if (!result) {Log.i(TAG, sharedPrefName +" not found.");}
         return result;
     }
 
-     /**
-     * Gets the current registration ID for application on GCM service, if there is one.
-     * <p>
-     * If result is empty, the app needs to register.
-     *
-     * @return registration ID, or empty string if there is no existing
-     *         registration ID.
-     */
-    private String getRegistrationId(Context context) {
-        final SharedPreferences prefs = getGcmPreferences(context);
-        String registrationId = prefs.getString(PROPERTY_REG_ID, "");
-        if (registrationId.isEmpty()) {
-            Log.i(TAG, "Registration not found.");
-            return "";
-        }
-        // Check if app was updated; if so, it must clear the registration ID
-        // since the existing regID is not guaranteed to work with the new
-        // app version.
-        int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
-        int currentVersion = getAppVersion(context);
-        if (registeredVersion != currentVersion) {
-            Log.i(TAG, "App version changed.");
-            return "";
-        }
-        return registrationId;
+    //Set SharedPreferences Value
+    private void setSharedPrefInfo(String sharedPrefName, String sharedPrefValue, SharedPreferences sharedPref)
+    {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(sharedPrefName, sharedPrefValue);
+        editor.commit();
     }
+    private void setSharedPrefInfo(String sharedPrefName, Integer sharedPrefValue, SharedPreferences sharedPref)
+    {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putInt(sharedPrefName, sharedPrefValue);
+        editor.commit();
+    }
+    private void setSharedPrefInfo(String sharedPrefName, Boolean sharedPrefValue, SharedPreferences sharedPref)
+    {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(sharedPrefName, sharedPrefValue);
+        editor.commit();
+    }
+
 
     /**
      * @return Application's version code from the {@code PackageManager}.
@@ -537,7 +607,7 @@ public class ChromoServer{
     }
 
     public String getTargetURL () {
-        return getSharedPrefInfo(context, PROPERTY_TARGET,getSettingsPreferences(context));
+        return getSharedPrefInfoString(PROPERTY_TARGET,getSettingsPreferences(context));
     }
 
     public String getDeviceID(){
