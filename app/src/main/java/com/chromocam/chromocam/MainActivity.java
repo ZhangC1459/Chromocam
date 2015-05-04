@@ -238,8 +238,8 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             //openSettings();
-            this.chromoServer.syncServerCurrentSettings();
             this.actionBar.hide();
+            this.chromoServer.syncServerCurrentSettings();
             getFragmentManager().beginTransaction().replace(R.id.fragment_container, new PrefsFragment()).addToBackStack(this.topLevelName).commit();
             Log.d("PREFERENCES-DEBUG", "Preferences have been selected");
             settings = true;
