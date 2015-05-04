@@ -624,7 +624,7 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
         final Payload p;
         //Step 1. Prepare the post request object
         HashMap<String, String> params = new HashMap<String, String>();
-        params.put("offset", Integer.toString((pageNo-1)*10));
+        params.put("offset", Integer.toString((pageNo-1)*getPanelNum()));
         switch (calling) {
             case 1:
                 params.put("archive", "0");
@@ -639,7 +639,7 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
                 p = new Payload(null, Purpose.GET_FILE_LIST_E);
                 break;
         }
-        params.put("limit", "10");
+        params.put("limit", Integer.toString(getPanelNum()));
         JSONObject JSONpost = prepareSecureJSONAuth(params);
         Log.d("Watcher", "Posting: " + JSONpost.toString());
         //Step 2: AsyncTask

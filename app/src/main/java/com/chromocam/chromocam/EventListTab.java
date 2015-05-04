@@ -91,7 +91,7 @@ public class EventListTab extends ListFragment {
         mAdapter = new EventListAdapter(getActivity(), items, serv);
         setListAdapter(mAdapter);
         mAdapter.notifyDataSetChanged();
-        if(items.size()<10){
+        if(items.size()<serv.getPanelNum()){
             btn_next.setEnabled(false);
         }
     }
