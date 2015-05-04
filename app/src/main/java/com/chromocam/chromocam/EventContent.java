@@ -35,7 +35,6 @@ public class EventContent{
     private String date;
     private String time;
     private Bitmap image;
-    private String url;
     private String[] temp;
     //Constructor, accepts a JSONObject from the Async Loader method
     public EventContent(JSONObject input){
@@ -45,7 +44,6 @@ public class EventContent{
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        this.url = "http://downyhouse.homenet.org:3000/files/" + this.imageID;
         date = temp[0];
         time = temp[1];
     }
@@ -66,8 +64,6 @@ public class EventContent{
     public Bitmap getImage(){
         return this.image;
     }
-
-    public String getUrl() { return this.url; }
 
     public void setImage(Bitmap bitmap) { this.image = bitmap; }
 

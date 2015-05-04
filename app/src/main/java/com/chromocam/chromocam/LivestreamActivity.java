@@ -63,12 +63,14 @@ public class LivestreamActivity extends Activity {
         btn_snap.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
+                Log.d("Chromocam", "Snapshot button clicked");
                 try{
                     new AsyncTask<Void, Void, String>() {
 
                         @Override
                         protected String doInBackground (Void...params){
                             try {
+                                Log.d("Chromocam", "Async Task started");
                                 JSONObject json = new JSONObject();
                                 json.put("id", deviceID);
                                 json.put("token", uniqueToken);
@@ -100,6 +102,7 @@ public class LivestreamActivity extends Activity {
                         }
                         //After execution, make toast
                         protected void onPostExecute (String result){
+                            Log.d("Chromocam", "post execute");
                             if(result.contains("true")){
                                 makingToast("Success!");
                             } else {
@@ -229,21 +232,6 @@ public class LivestreamActivity extends Activity {
 
                 this.urlStream = in;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -255,7 +243,7 @@ public class LivestreamActivity extends Activity {
             //Background Processing, constantly change UI image
             while(processing)
             {
-                Log.d("MJPEG RUNNABLE", "Processing");
+                //Log.d("MJPEG RUNNABLE", "Processing");
                 try
                 {
                     //Get JPEG from Stream
@@ -265,7 +253,7 @@ public class LivestreamActivity extends Activity {
                     Bitmap image = BitmapFactory.decodeByteArray(b, 0, b.length);
 
                     //Set imageView to Bitmap Image if valid
-                    Log.d("MJPEG Image", image.toString());
+                    //Log.d("MJPEG Image", image.toString());
                     if(!image.toString().equals("Can't read")) {
                         this.image = image;
                         this.mjpeg.livestream.runOnUiThread(new Runnable() {
@@ -322,7 +310,7 @@ public class LivestreamActivity extends Activity {
          */
         private byte[] retrieveNextImage() throws IOException, NullPointerException
         {
-            Log.d("MJPEG RUNNABLE", "Retrieving Next Image");
+            //Log.d("MJPEG RUNNABLE", "Retrieving Next Image");
 
             //JPEG Format: http://www.onicos.com/staff/iz/formats/jpeg.html
             //Beginning of File
