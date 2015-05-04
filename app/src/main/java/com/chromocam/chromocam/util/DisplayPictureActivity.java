@@ -27,10 +27,12 @@ import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -40,6 +42,9 @@ public class DisplayPictureActivity extends Activity {
     private String imageID = "0";
     private Menu menu;
     private Bitmap image = null;
+    private String deviceID;
+    private String token;
+    private String targetURL;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +54,9 @@ public class DisplayPictureActivity extends Activity {
         imageID = getIntent().getStringExtra("imageID");
         byte[] b = getIntent().getByteArrayExtra("image");
         image = BitmapFactory.decodeByteArray(b, 0, b.length);
+        this.deviceID = getIntent().getStringExtra("deviceID");
+        this.token = getIntent().getStringExtra("token");
+        this.targetURL = getIntent().getStringExtra("targetURL");
         ImageView imageView = (ImageView) findViewById(R.id.full_image_view);
         imageView.setImageBitmap(image);
     }
@@ -122,8 +130,8 @@ public class DisplayPictureActivity extends Activity {
             JSONObject keyIDPair = new JSONObject();
             try {
                 //passes the device id and the token
-                keyIDPair.put("id", "14");
-                keyIDPair.put("token", "610b860e547f2cf2c64a1fc142dac726f65a39f0");
+                keyIDPair.put("id", deviceID);
+                keyIDPair.put("token", token);
                 //if statements depending on whether we're archiving or not
                 if(id == R.id.action_archive){
                     keyIDPair.put("archive", "1");
@@ -157,7 +165,7 @@ public class DisplayPictureActivity extends Activity {
         @Override
         protected String doInBackground(JSONObject...keyIDPair){
             try{
-                String imgUrl = "http://downyhouse.homenet.org:3000/files/" + imageID + "/setArchive";
+                String imgUrl = targetURL + "/files/" + imageID + "/setArchive";
                 //create an HTTPClient and post header
                 HttpClient httpClient = new DefaultHttpClient();
                 HttpPost httpPost = new HttpPost(imgUrl);
@@ -170,7 +178,17 @@ public class DisplayPictureActivity extends Activity {
                 Log.d("TEST", "Sending: " + se);
                 HttpResponse response = httpClient.execute(httpPost);
                 InputStream in = response.getEntity().getContent();
-
+                BufferedReader sr = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                StringBuilder res = new StringBuilder();
+                String inputStr;
+                while((inputStr = sr.readLine()) != null)
+                    res.append(inputStr);
+                Log.d("ChromoServer POST", res.toString());
+                if(res.toString().contains("1")){
+                    return "Success";
+                } else {
+                    return "Error";
+                }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (ClientProtocolException e) {

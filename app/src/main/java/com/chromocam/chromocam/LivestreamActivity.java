@@ -50,7 +50,7 @@ public class LivestreamActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         // Get the layout from video_main.xml
-        setContentView(R.layout.livestreamVideo);
+        setContentView(R.layout.livestreamvideo);
         this.deviceID = getIntent().getExtras().getString("ID");
         this.uniqueToken = getIntent().getExtras().getString("token");
         // Find your VideoView in your video_main.xml layout

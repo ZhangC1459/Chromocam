@@ -146,6 +146,10 @@ public class EventListTab extends ListFragment {
             intent.putExtra("calling", 1);
             //Adds the image id for archive/unarchive purposes to the intent
             intent.putExtra("imageID", item.getImageID());
+            //passes device ID and other POST parameters
+            intent.putExtra("deviceID", serv.getDeviceID());
+            intent.putExtra("token", serv.getUniqueToken());
+            intent.putExtra("targetURL", serv.getTargetURL());
             //starts the activity
             startActivity(intent);
         } catch (NullPointerException e){
