@@ -88,11 +88,17 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
 
         this.chromoServer = new ChromoServer(this, this.getApplicationContext());
 
+
+
+
         quitDialog = new AlertDialog.Builder(this);
         quitDialog.setTitle("Quit Chromocam?");
         quitDialog.setMessage(R.string.are_you_sure);
         quitDialog.setPositiveButton(R.string.quit, new DialogInterface.OnClickListener(){
             public void onClick(DialogInterface dialog, int which) {
+
+
+
                 Log.d("MainActivity Dialog", "Clicked quit button");
                 MainActivity.this.finish();
                 System.exit(0);
@@ -115,6 +121,9 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
 
     private void registerDevice() {
         setContentView(R.layout.registration);
+
+        this.chromoServer.setSharedPrefInfo(chromoServer.PROPERTY_NOTIFICATIONS_ENABLED, false);
+        this.chromoServer.setSharedPrefInfo(chromoServer.PROPERTY_REG_ID, "", chromoServer.getGcmPreferences(this.getApplicationContext()));
 
         //set Button listener
         this.registerButton = (Button) findViewById(R.id.registerButton);
@@ -140,6 +149,8 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
     private void checkRegistration()
     {
         Log.d("REGISTER_DEBUG", "Checking Registration");
+
+
 
         //Get Target Domain
         TextView target_domain_key = (TextView)findViewById(R.id.targetDomain_key);

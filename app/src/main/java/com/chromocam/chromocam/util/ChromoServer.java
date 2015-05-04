@@ -870,40 +870,40 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
     }
 
     //Set SharedPreferences Value
-    private void setSharedPrefInfo(String sharedPrefName, String sharedPrefValue)
+    public void setSharedPrefInfo(String sharedPrefName, String sharedPrefValue)
     {
         SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(sharedPrefName, sharedPrefValue);
         editor.commit();
     }
-    private void setSharedPrefInfo(String sharedPrefName, Integer sharedPrefValue)
+    public void setSharedPrefInfo(String sharedPrefName, Integer sharedPrefValue)
     {
         SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putInt(sharedPrefName, sharedPrefValue);
         editor.commit();
     }
-    private void setSharedPrefInfo(String sharedPrefName, Boolean sharedPrefValue)
+    public void setSharedPrefInfo(String sharedPrefName, Boolean sharedPrefValue)
     {
         SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putBoolean(sharedPrefName, sharedPrefValue);
         editor.commit();
     }
-    private void setSharedPrefInfo(String sharedPrefName, String sharedPrefValue, SharedPreferences sharedPref)
+    public void setSharedPrefInfo(String sharedPrefName, String sharedPrefValue, SharedPreferences sharedPref)
     {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(sharedPrefName, sharedPrefValue);
         editor.commit();
     }
-    private void setSharedPrefInfo(String sharedPrefName, Integer sharedPrefValue, SharedPreferences sharedPref)
+    public void setSharedPrefInfo(String sharedPrefName, Integer sharedPrefValue, SharedPreferences sharedPref)
     {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putInt(sharedPrefName, sharedPrefValue);
         editor.commit();
     }
-    private void setSharedPrefInfo(String sharedPrefName, Boolean sharedPrefValue, SharedPreferences sharedPref)
+    public void setSharedPrefInfo(String sharedPrefName, Boolean sharedPrefValue, SharedPreferences sharedPref)
     {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putBoolean(sharedPrefName, sharedPrefValue);
@@ -924,7 +924,7 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
     }
 
     //Get GCM Preferences
-    private SharedPreferences getGcmPreferences(Context context)
+    public SharedPreferences getGcmPreferences(Context context)
     {return context.getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);}
 
     //Get Settings Preferences
