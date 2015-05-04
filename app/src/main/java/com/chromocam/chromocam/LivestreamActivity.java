@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -31,6 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 public class LivestreamActivity extends Activity {
@@ -45,7 +47,7 @@ public class LivestreamActivity extends Activity {
     MJPEGasyncTask task;
 
     // Stream Source
-    String videoURL = "https:/chromocam.co:3000/stream2";
+    String videoURL = "https:/chromocam.co:3000/stream";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,14 +65,12 @@ public class LivestreamActivity extends Activity {
         btn_snap.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-                Log.d("Chromocam", "Snapshot button clicked");
                 try{
                     new AsyncTask<Void, Void, String>() {
 
                         @Override
                         protected String doInBackground (Void...params){
                             try {
-                                Log.d("Chromocam", "Async Task started");
                                 JSONObject json = new JSONObject();
                                 json.put("id", deviceID);
                                 json.put("token", uniqueToken);
@@ -102,7 +102,6 @@ public class LivestreamActivity extends Activity {
                         }
                         //After execution, make toast
                         protected void onPostExecute (String result){
-                            Log.d("Chromocam", "post execute");
                             if(result.contains("true")){
                                 makingToast("Success!");
                             } else {
@@ -143,7 +142,6 @@ public class LivestreamActivity extends Activity {
     public void onBackPressed()
     {
         //Stop Stream
-        this.progressDialog.dismiss();
         this.task.stop();
         //Previous Activity
         super.onBackPressed();
@@ -174,7 +172,11 @@ public class LivestreamActivity extends Activity {
         //Parent Activity Info
         MJPEG mjpeg = null;
         private InputStream urlStream;
+        private HttpClient httpClient;
+        private HttpResponse response;
+        private HttpPost request;
         private boolean processing = true;
+
 
         //Byte Buffers
         private int byteBufferSize = 50000;
@@ -209,7 +211,11 @@ public class LivestreamActivity extends Activity {
 
             //Load MJPEG
             this.mjpeg = streams[0];
-
+            try {
+                Log.d("LIVESTREAM", String.valueOf(this.mjpeg.streamSource.toURI()));
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
             //Open Connection to Server MJPEG Stream
             try {
                 //this.urlStream = mjpeg.streamSource.openStream();
@@ -217,33 +223,53 @@ public class LivestreamActivity extends Activity {
                 JSONObject json = new JSONObject();
                 json.put("id", deviceID);
                 json.put("token", uniqueToken);
+//                String jsonPayload = json.toString();
+//
+//                StringEntity se = new StringEntity(jsonPayload);
+//
+//
+////
+//                HttpClient httpClient = new DefaultHttpClient();
+//                HttpPost httpPost = new HttpPost(mjpeg.streamSource.toURI());
+//                httpPost.setEntity(se);
+//                httpPost.setHeader("Content-type", "application/json");
+//                HttpResponse httpResponse = httpClient.execute(httpPost);
+//                this.urlStream = httpResponse.getEntity().getContent();
+
                 int TIMEOUT_MILLISEC = 10000;  // = 10 seconds
                 HttpParams httpParams = new BasicHttpParams();
                 HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT_MILLISEC);
                 HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT_MILLISEC);
-                HttpPost request = new HttpPost(mjpeg.streamSource.toURI()); //sets URL for POST request
+                request = new HttpPost(mjpeg.streamSource.toURI()); //sets URL for POST request
                 request.setHeader("Content-Type", "application/json; charset=utf-8"); //Sets content type header
                 StringEntity se = new StringEntity(json.toString()); //turns json to string
-                //se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json")); //encodes as "json type"
+                se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/text")); //encodes as "json type"
                 request.setEntity(se); //sets entity
-                HttpClient client = new DefaultHttpClient(request.getParams());
-                HttpResponse response = client.execute(request);
-                InputStream in = response.getEntity().getContent();
+                httpClient = new DefaultHttpClient(request.getParams());
+                response = httpClient.execute(request);
 
-                this.urlStream = in;
+                this.urlStream = response.getEntity().getContent();
+
+                if(this.urlStream == null)
+                {
+                    return null;
+                }
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
+                Log.d("InputStream", e.getLocalizedMessage());
             } catch (IOException e) {
                 e.printStackTrace();
+                Log.d("InputStream", e.getLocalizedMessage());
             } catch (Exception e) {
                 e.printStackTrace();
+                Log.d("InputStream", e.getLocalizedMessage());
             }
 
             //Background Processing, constantly change UI image
             while(processing)
             {
-                //Log.d("MJPEG RUNNABLE", "Processing");
+                Log.d("MJPEG RUNNABLE", "Processing");
                 try
                 {
                     //Get JPEG from Stream
@@ -253,8 +279,8 @@ public class LivestreamActivity extends Activity {
                     Bitmap image = BitmapFactory.decodeByteArray(b, 0, b.length);
 
                     //Set imageView to Bitmap Image if valid
-                    //Log.d("MJPEG Image", image.toString());
-                    if(!image.toString().equals("Can't read")) {
+                    Log.d("MJPEG Image", image.toString());
+                    if(!image.toString().equals("Can't read") && processing) {
                         this.image = image;
                         this.mjpeg.livestream.runOnUiThread(new Runnable() {
                             @Override
@@ -279,16 +305,15 @@ public class LivestreamActivity extends Activity {
                 }catch(NullPointerException e)
                 {
                     Log.d("MJPEG RUNNABLE", "Can't read");
+                    stop();
                 }
             }
 
             // Close Streams
             Log.d("MJPEG RUNNABLE", "Closing");
-            try {
-                this.urlStream.close();
-            } catch (IOException ioe) {
-                Log.d("MJPEG RUNNABLE", "Failed to close the stream: " + ioe);
-            }
+            this.request.abort();
+
+
 
 
 
@@ -298,8 +323,8 @@ public class LivestreamActivity extends Activity {
         //End Background Process
         public void stop()
         {
+            progressDialog.dismiss();
             processing = false;
-            this.cancel(true);
         }
 
 
@@ -310,7 +335,7 @@ public class LivestreamActivity extends Activity {
          */
         private byte[] retrieveNextImage() throws IOException, NullPointerException
         {
-            //Log.d("MJPEG RUNNABLE", "Retrieving Next Image");
+            Log.d("MJPEG RUNNABLE", "Retrieving Next Image");
 
             //JPEG Format: http://www.onicos.com/staff/iz/formats/jpeg.html
             //Beginning of File
@@ -336,6 +361,12 @@ public class LivestreamActivity extends Activity {
             //Start Scanning Input Stream
             while((currByte = urlStream.read()) > -1 && haveImage == false)
             {
+                if(!processing)
+                {
+                    break;
+                }
+
+
                 byteCounter++;
                 this.byteBuffer[byteCounter] = (byte)currByte;
 

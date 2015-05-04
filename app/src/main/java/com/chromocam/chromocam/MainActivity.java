@@ -16,11 +16,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.chromocam.chromocam.util.ChromoComplete;
 import com.chromocam.chromocam.util.ChromoServer;
@@ -68,7 +70,7 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
     private Boolean deviceRegistered = false;
     private Bundle savedInstanceState;
 
-    //Seems legit
+    //Defaults
     private String secretToken = "";
     private String targetDomain = "https://chromocam.co:3000";
     private String password = "asdf123";
@@ -95,7 +97,7 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
                 MainActivity.this.finish();
                 System.exit(0);
             }
-        }).setNegativeButton(R.string.cancel,new DialogInterface.OnClickListener(){
+        }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 Log.d("MainActivity Dialog", "Clicked cancel button");
             }
@@ -151,9 +153,17 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         String pws = password_key.getEditableText().toString();
         Log.d("REGISTER_DEBUG", "Password: " + pws);
 
+        if(tDomain.isEmpty() || pws.isEmpty())
+        {
+            Toast.makeText(this, "Fields cannot be empty!", Toast.LENGTH_LONG).show();
+        }else if (!Patterns.WEB_URL.matcher(tDomain).matches()) {
+            Toast.makeText(this, "You must input an URL!", Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            chromoServer.initChromoServer(tDomain, pws);
+        }
 
-        chromoServer.initChromoServer(tDomain, pws);
-        //this.chromoServer.initPushRegistration();
 
     }
 
