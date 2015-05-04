@@ -34,6 +34,7 @@ public class LiveStreamTab extends Fragment {
                 Intent myIntent = new Intent(arg0.getContext(), LivestreamActivity.class);
                 myIntent.putExtra("ID", serv.getDeviceID());
                 myIntent.putExtra("token", serv.getUniqueToken());
+                myIntent.putExtra("targetURL", serv.getTargetURL());
                 startActivity(myIntent);
             }
         });

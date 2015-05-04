@@ -39,6 +39,7 @@ public class LivestreamActivity extends Activity {
     private ProgressDialog progressDialog;
     private String deviceID;
     private String uniqueToken;
+    private String targetURL;
     ImageView mjpegView;
     Button btn_snap;
     MJPEGasyncTask task;
@@ -53,6 +54,8 @@ public class LivestreamActivity extends Activity {
         setContentView(R.layout.livestreamvideo);
         this.deviceID = getIntent().getExtras().getString("ID");
         this.uniqueToken = getIntent().getExtras().getString("token");
+        this.targetURL = getIntent().getExtras().getString("targetURL");
+
         // Find your VideoView in your video_main.xml layout
         this.mjpegView = (ImageView) findViewById(R.id.mjpegView);
         this.btn_snap = (Button) findViewById(R.id.snapshot);
@@ -73,7 +76,7 @@ public class LivestreamActivity extends Activity {
                                 HttpParams httpParams = new BasicHttpParams();
                                 HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT_MILLISEC);
                                 HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT_MILLISEC);
-                                HttpPost request = new HttpPost("https://chromocam.co:3000/motion/snapshot"); //sets URL for POST request
+                                HttpPost request = new HttpPost(targetURL + "/motion/snapshot"); //sets URL for POST request
                                 request.setHeader("Content-Type", "application/json; charset=utf-8"); //Sets content type header
                                 StringEntity se = new StringEntity(json.toString()); //turns json to string
                                 se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json")); //encodes as "json type"
@@ -112,7 +115,7 @@ public class LivestreamActivity extends Activity {
 
         try {
             Log.d("Livestream", "Initializing MJPEG Stream");
-            MJPEG mjpeg = new MJPEG(mjpegView, new URL(videoURL), this);
+            MJPEG mjpeg = new MJPEG(mjpegView, new URL(targetURL + "/stream"), this);
             //this.connection = new Thread(new MjpegRunnable(mjpegView, videoURL));
             this.task = new MJPEGasyncTask();
             task.execute(mjpeg);
@@ -206,7 +209,41 @@ public class LivestreamActivity extends Activity {
 
             //Open Connection to Server MJPEG Stream
             try {
-                this.urlStream = mjpeg.streamSource.openStream();
+                //this.urlStream = mjpeg.streamSource.openStream();
+
+                JSONObject json = new JSONObject();
+                json.put("id", deviceID);
+                json.put("token", uniqueToken);
+                int TIMEOUT_MILLISEC = 10000;  // = 10 seconds
+                HttpParams httpParams = new BasicHttpParams();
+                HttpConnectionParams.setConnectionTimeout(httpParams, TIMEOUT_MILLISEC);
+                HttpConnectionParams.setSoTimeout(httpParams, TIMEOUT_MILLISEC);
+                HttpPost request = new HttpPost(mjpeg.streamSource.toURI()); //sets URL for POST request
+                request.setHeader("Content-Type", "application/json; charset=utf-8"); //Sets content type header
+                StringEntity se = new StringEntity(json.toString()); //turns json to string
+                //se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json")); //encodes as "json type"
+                request.setEntity(se); //sets entity
+                HttpClient client = new DefaultHttpClient(request.getParams());
+                HttpResponse response = client.execute(request);
+                InputStream in = response.getEntity().getContent();
+
+                this.urlStream = in;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
