@@ -117,10 +117,6 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
         this.currentActivity = current;
         this.context = context;
 
-        //Register Listener for changes in Preferences Settings
-        getSettingsPreferences(context).registerOnSharedPreferenceChangeListener(this);
-        getGcmPreferences(context).registerOnSharedPreferenceChangeListener(this);
-
         this.logRegistrationInfo();
         this.logPreferences();
 
@@ -138,9 +134,23 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
             }
 
         }
+        else
+        {
+            initPreferences();
+        }
+
+        enableSettingsListeners();
 
 
     }
+
+    private void enableSettingsListeners()
+    {
+        //Register Listener for changes in Preferences Settings
+        getSettingsPreferences(context).registerOnSharedPreferenceChangeListener(this);
+        getGcmPreferences(context).registerOnSharedPreferenceChangeListener(this);
+    }
+
 
 
     private void logRegistrationInfo()
@@ -184,14 +194,6 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
     //Register Device to Server
     private void registerDevice(String password)
     {
-//        this.regid = this.getSharedPrefInfo(this.context, PROPERTY_REG_ID,getGcmPreferences(this.context));
-//
-//        if(regid.isEmpty())
-//        {
-//            Log.d("ChromoServer Reg", "Push Reg ID Not found");
-//            return;
-//        }
-
         String registerString = "/devices/register";
         HashMap<String, String> params = new HashMap<String, String>();
 
@@ -490,21 +492,6 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
                     Log.d("ChromoServ Error", "Bad JSON");
                 }
             }
-        }
-    }
-
-
-    private class resolutionHelper
-    {
-        int width;
-        int height;
-        HttpPost httppost;
-
-        resolutionHelper(int width, int height, HttpPost httppost)
-        {
-            this.width = width;
-            this.height = height;
-            this.httppost = httppost;
         }
     }
 
@@ -820,12 +807,14 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
     }
 
     //Initalize Default Preferences on Registration
-    private void initPreferences()
+    public void initPreferences()
     {
         this.setSharedPrefInfo(PROPERTY_IS_REGISTERED, false);
         this.setSharedPrefInfo(PROPERTY_NOTIFICATIONS_ENABLED, false);
         this.setSharedPrefInfo(PROPERTY_NOTIFICATIONS_REGISTERED, false);
-        this.setSharedPrefInfo(PROPERTY_PANEL_NUM, 10);
+        this.setSharedPrefInfo(PROPERTY_NOTIFICATIONS_ENABLED, false);
+        this.setSharedPrefInfo(PROPERTY_REG_ID, "", getGcmPreferences(this.context));
+        this.setSharedPrefInfo(PROPERTY_PANEL_NUM, "10");
     }
 
     //Get SharedPreferences Value

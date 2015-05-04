@@ -122,9 +122,6 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
     private void registerDevice() {
         setContentView(R.layout.registration);
 
-        this.chromoServer.setSharedPrefInfo(chromoServer.PROPERTY_NOTIFICATIONS_ENABLED, false);
-        this.chromoServer.setSharedPrefInfo(chromoServer.PROPERTY_REG_ID, "", chromoServer.getGcmPreferences(this.getApplicationContext()));
-
         //set Button listener
         this.registerButton = (Button) findViewById(R.id.registerButton);
         this.registerButton.setOnClickListener(this);
