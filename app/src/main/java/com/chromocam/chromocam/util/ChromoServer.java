@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.Patterns;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -206,6 +207,7 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
         //Log.d("Chromo Server", "GCM Registration ID: " + regid);
 
         try {
+
              new processRegistration().execute(prepareSecurePostRequest(new JSONObject(params), this.targetURLroot + registerString));
 
         } catch (UnsupportedEncodingException e) {
@@ -420,6 +422,7 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
 
         Log.d("JSONOBJECT:", widthParams.toString());
         Log.d("JSONOBJECT:", heightParams.toString());
+
 
         try {
             new processJSONresolution().execute(prepareSecurePostRequest(widthParams, this.getTargetURL() + setConfig),prepareSecurePostRequest(heightParams, this.getTargetURL() + setConfig));
@@ -787,10 +790,17 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
             return res.toString();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
+            Toast.makeText(this.currentActivity, "Cannot connect to target URL!", Toast.LENGTH_LONG).show();
         } catch (ClientProtocolException e) {
             e.printStackTrace();
+            Toast.makeText(this.currentActivity, "Cannot connect to target URL!", Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(this.currentActivity, "Cannot connect to target URL!", Toast.LENGTH_LONG).show();
+        } catch (IllegalStateException e)
+        {
+            e.printStackTrace();
+            Toast.makeText(this.currentActivity, "Cannot connect to target URL!", Toast.LENGTH_LONG).show();
         }
 
         return null;
