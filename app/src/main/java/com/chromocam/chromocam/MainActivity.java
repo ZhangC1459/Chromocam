@@ -72,8 +72,8 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
 
     //Defaults
     private String secretToken = "";
-    private String targetDomain = "";
-    private String password = "";
+    private String targetDomain = "https://chromocam.co:3000";
+    private String password = "asdf123";
     private AlertDialog.Builder quitDialog;
 
     //kludgy as hell
