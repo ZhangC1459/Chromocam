@@ -48,6 +48,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeListener{
 
@@ -55,24 +57,34 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
     static final String TAG = "Chromocam";
 
     //Preferences Settings
-    //Notifcations
+    //Notifications
     public static final String PROPERTY_NOTIFICATIONS_ENABLED = "notifications_enabled";
     public static final String PROPERTY_NOTIFICATIONS_REGISTERED = "notifications_registered";
     //Camera Settings
     public static final String PROPERTY_DEADAZONE_KEY = "deadzone_key";
+    public static final String PROPERTY_THRESHOLD_KEY = "threshold";
+
+    //Resolution
     public static final String PROPERTY_RESOLUTION_KEY = "resolution_key";
+    public static final String PROPERTY_RESOLUTION_WIDTH = "resolution_width";
+    public static final String PROPERTY_RESOLUTION_HEIGHT = "resolution_width";
+
     public static final String PROPERTY_FRAMERATE_KEY = "framerate_key";
     public static final String PROPERTY_DELAY_KEY = "delay_key";
+
     //App Settings
     public static final String PROPERTY_PANEL_NUM = "panel_num";
 
     //Registration Properties
     public static final String PROPERTY_REG_ID = "registration_id";
-    private static final String PROPERTY_APP_VERSION = "appVersion";
-    private static final String PROPERTY_IS_REGISTERED = "login_settings";
-    private static final String PROPERTY_TOKEN = "token";
-    private static final String PROPERTY_TARGET = "target";
-    private static final String PROPERTY_DEVICE_ID = "device_id";
+    public static final String PROPERTY_APP_VERSION = "appVersion";
+    public static final String PROPERTY_IS_REGISTERED = "login_settings";
+    public static final String PROPERTY_TOKEN = "token";
+    public static final String PROPERTY_DEVICE_ID = "device_id";
+
+    //Public URLS
+    public static final String PROPERTY_TARGET = "target";
+
 
     //Registration ID
     String regid;
@@ -106,18 +118,13 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
 
         //Register Listener for changes in Preferences Settings
         getSettingsPreferences(context).registerOnSharedPreferenceChangeListener(this);
+        getGcmPreferences(context).registerOnSharedPreferenceChangeListener(this);
 
         this.logRegistrationInfo();
         this.logPreferences();
 
-        if(this.getSharedPrefInfoString(PROPERTY_REG_ID, getGcmPreferences(this.context)).isEmpty())
-        {
-            Log.d("GCM Push Reg", "Starting GCM Push Registration");
-            this.GCMregisterInBackground();
-        }
-
         //Check for Preset Information
-        else if(getSettingsPreferences(this.context).getBoolean(PROPERTY_IS_REGISTERED, false))
+        if(getSettingsPreferences(this.context).getBoolean(PROPERTY_IS_REGISTERED, false))
         {
             Payload registered = new Payload(null, Purpose.REGISTERED);
             registered.setResult(true);
@@ -152,23 +159,6 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
     //Registers for Push Notifications if Necessary
     public void registerPushNotifcations()
     {
-        //Check if App Versions Mismatched
-        int registeredVersion = getGcmPreferences(this.context).getInt(this.PROPERTY_APP_VERSION, Integer.MIN_VALUE);
-        int currentVersion = getAppVersion(this.context);
-
-        //If Version Mismatch
-        if (registeredVersion != currentVersion) {
-            Log.d(TAG, "App version changed.");
-            try {
-                this.gcm.unregister();
-                this.getGcmPreferences(this.context).edit().putString(PROPERTY_REG_ID, "");
-            } catch (IOException e) {
-                Log.d(TAG, "Could not unregister ");
-                e.printStackTrace();
-                return;
-            }
-        }
-
         if(this.getSharedPrefInfoString(PROPERTY_REG_ID, getGcmPreferences(this.context)).isEmpty())
         {
             Log.d("GCM Push Reg", "Starting GCM Push Registration");
@@ -202,23 +192,21 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
 //        }
 
         String registerString = "/devices/register";
-        Map<String, String> params = new HashMap<String, String>();
+        HashMap<String, String> params = new HashMap<String, String>();
 
         try {
             params.put("hashedPass", this.sha1(password));
-            params.put("gcmId", regid);
         } catch (NoSuchAlgorithmException e) {
             Log.d("ChromoServer", "SHA1 Failed");
             e.printStackTrace();
         }
 
-        Payload p = new Payload(this.targetURLroot + registerString, Purpose.REGISTER);
         Log.d("Chromo Server", "Executing Async POST Request");
         Log.d("Chromo Server", "Parameters: " + params.get("hashedPass") + ", " + this.targetURLroot + registerString);
         //Log.d("Chromo Server", "GCM Registration ID: " + regid);
 
         try {
-             new processPostRequest().execute(prepareSecurePostRequest(new JSONObject(params), this.targetURLroot + registerString));
+             new processRegistration().execute(prepareSecurePostRequest(new JSONObject(params), this.targetURLroot + registerString));
 
         } catch (UnsupportedEncodingException e) {
             Log.d("ChromoServer", "JSON encoding not accepted");
@@ -244,43 +232,340 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Log.d("Preference Changed:", key);
 
+        HashMap<String, String> params = new HashMap<String, String>();
+        String target_end = "";
+        String motionConfigSet = "/motion/config/set";
+
         //Push Notification Toggled
         if(key.equals(PROPERTY_NOTIFICATIONS_ENABLED))
         {
 
+            registerPushNotifcations();
+
+
+            //Send Request to ChromocamAPI to toggle Push notifications
+            String ChromoAPIpush = "/devices/notifications/set";
+            JSONObject chromopush = prepareSecureJSONAuth();
+
+            try {
+                Integer setting = getSharedPrefInfoBoolean(PROPERTY_NOTIFICATIONS_ENABLED) ? 1 : 0;
+                chromopush.put("enabled", setting);
+                Log.d("NOTIF_ENABLED", chromopush.toString());
+                HttpPropertyHelper pay = new HttpPropertyHelper(prepareSecurePostRequest(chromopush, getTargetURL() + ChromoAPIpush), PROPERTY_REG_ID);
+                new processJSON().execute(pay);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
         else if(key.equals(PROPERTY_DEADAZONE_KEY))
         {
+            JSONObject deadzoneParams = prepareSecureJSONAuth();
 
+            try {
+                deadzoneParams.put("option", "area_detect");
+                deadzoneParams.put("value", this.getSharedPrefInfoString(PROPERTY_DEADAZONE_KEY).toString());
+                Log.d("PARAMS", deadzoneParams.toString());
+                try {
+                    new processJSON().execute(new HttpPropertyHelper(prepareSecurePostRequest(deadzoneParams, getTargetURL() + motionConfigSet), PROPERTY_DEADAZONE_KEY));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if(key.equals(PROPERTY_RESOLUTION_KEY))
         {
 
+            String[] resolution = this.getSharedPrefInfoString(PROPERTY_RESOLUTION_KEY).split("x");
+            if(resolution.length >1)
+            {
+                String width = resolution[0];
+                String height = resolution[1];
+                Log.d("RESOLUTION", this.getSharedPrefInfoString(PROPERTY_RESOLUTION_KEY));
+
+                JSONObject widthParams = prepareSecureJSONAuth();
+                JSONObject heightParams = prepareSecureJSONAuth();
+
+                try {
+                    widthParams.put("option", "width");
+                    widthParams.put("value", width);
+
+                    heightParams.put("option", "height");
+                    heightParams.put("value", height);
+
+                    Log.d("SENDING WIDTHxHEIGHT", widthParams.toString() + heightParams.toString());
+
+                    try {
+                        new processJSON().execute(new HttpPropertyHelper(prepareSecurePostRequest(widthParams, getTargetURL() + motionConfigSet), PROPERTY_RESOLUTION_WIDTH));
+                        new processJSON().execute(new HttpPropertyHelper(prepareSecurePostRequest(heightParams, getTargetURL() + motionConfigSet), PROPERTY_RESOLUTION_HEIGHT));
+
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
         }
         else if(key.equals(PROPERTY_FRAMERATE_KEY))
         {
+            JSONObject frameParams = prepareSecureJSONAuth();
+
+
+            try {
+                frameParams.put("option", "framerate");
+                frameParams.put("value", this.getSharedPrefInfoString(PROPERTY_FRAMERATE_KEY).toString());
+                try {
+                    new processJSON().execute(new HttpPropertyHelper(prepareSecurePostRequest(frameParams, getTargetURL() + motionConfigSet), PROPERTY_FRAMERATE_KEY));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
         }
         else if(key.equals(PROPERTY_DELAY_KEY))
         {
+            JSONObject delayParams = prepareSecureJSONAuth();
 
+            try {
+                delayParams.put("option", "gap");
+                delayParams.put("value", this.getSharedPrefInfoString(PROPERTY_DELAY_KEY).toString());
+                try {
+                    Log.d("PARAMS", delayParams.toString());
+                    new processJSON().execute(new HttpPropertyHelper(prepareSecurePostRequest(delayParams, getTargetURL() + motionConfigSet), PROPERTY_DELAY_KEY));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else if(key.equals(PROPERTY_PANEL_NUM))
         {
 
         }
-        else if(key.equals(PROPERTY_IS_REGISTERED))
+        else if(key.equals(PROPERTY_REG_ID))
+        {
+            String ChromoAPIpush = "/devices/notifications/setToken";
+            JSONObject chromopush = prepareSecureJSONAuth();
+            try {
+                chromopush.put("gcmId", getSharedPrefInfoString(PROPERTY_REG_ID, this.getGcmPreferences(this.context)));
+                HttpPropertyHelper pay = new HttpPropertyHelper(prepareSecurePostRequest(chromopush, getTargetURL() + ChromoAPIpush), PROPERTY_REG_ID);
+                new processJSON().execute(pay);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Log.d("PREFERENCES STATUS:", this.getSettingsPreferences(this.context).getAll().toString());
+
+        Log.d("NumPanes", this.getPanelNum().toString());
+    }
+
+    public void syncServerCurrentSettings()
+    {
+        //Config Option Strings
+        String setConfig = "/motion/config/get";
+        HashMap<String, String> options = new HashMap<String, String>();
+        options.put("framerate", PROPERTY_FRAMERATE_KEY);
+        options.put("width",PROPERTY_RESOLUTION_WIDTH);
+        options.put("height",PROPERTY_RESOLUTION_HEIGHT);
+        options.put("gap", PROPERTY_DELAY_KEY);
+        options.put("area_detect", PROPERTY_DEADAZONE_KEY);
+
+
+        for(HashMap.Entry<String, String> entry : options.entrySet())
+        {
+            JSONObject params = prepareSecureJSONAuth();
+            try {
+                params.put("option", entry.getKey());
+                try {
+
+                    Log.d("JSONOBJECT:", params.toString());
+                    HttpPropertyHelper pay = new HttpPropertyHelper(prepareSecurePostRequest(params, this.getTargetURL() + setConfig), options.get(entry.getKey()));
+                    pay.updateShared = true;
+                    new processJSON().execute(pay);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                    Log.d("Chromoserver", "Unsupported Encoding");
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.d("ChromoserverSync", "JSON ERROR");
+            }
+        }
+        JSONObject widthParams = prepareSecureJSONAuth();
+        JSONObject heightParams = prepareSecureJSONAuth();
+        try {
+            widthParams.put("option", "width");
+            heightParams.put("option", "height");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("JSONOBJECT:", widthParams.toString());
+        Log.d("JSONOBJECT:", heightParams.toString());
+
+        try {
+            new processJSONresolution().execute(prepareSecurePostRequest(widthParams, this.getTargetURL() + setConfig),prepareSecurePostRequest(heightParams, this.getTargetURL() + setConfig));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private class HttpPropertyHelper
+    {
+        HttpPost httppost;
+        String sharedRefName;
+        Boolean updateShared = false;
+
+        HttpPropertyHelper(HttpPost httppost, String sharedRefName)
+        {
+            this.httppost = httppost;
+            this.sharedRefName = sharedRefName;
+        }
+
+    }
+
+    private class processJSON extends AsyncTask<HttpPropertyHelper, Void, String>
+    {
+        HttpPost httpPost;
+        String sharedRefName;
+        Boolean updateShared = false;
+
+        @Override
+        protected void onPreExecute()
         {
 
         }
 
+        @Override
+        protected String doInBackground(HttpPropertyHelper... params) {
+            this.httpPost = params[0].httppost;
+            this.sharedRefName = params[0].sharedRefName;
+            this.updateShared = params[0].updateShared;
+            return getJSONResponse(httpPost);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (result.toUpperCase().contains("FORBIDDEN")) {
+                Toast.makeText(currentActivity, "Auth failed!", Toast.LENGTH_LONG).show();
+            } else {
+                try {
+                    JSONObject res = new JSONObject(result);
+
+                    Log.d("SYNCHRONIZE", res.toString());
+
+                    //Store Credentials
+                    if(updateShared)
+                    {
+                        setSharedPrefInfo(this.sharedRefName, res.getString("value"));
+                        Log.d("Updating Preferences", this.sharedRefName + " and value: " + res.getString("value"));
+
+                    }
+                    //Success Toast Message
+                    //Toast.makeText(currentActivity, "Registration Success!", Toast.LENGTH_LONG).show();
+
+                } catch (JSONException e) {
+                    Log.d("ChromoServ Error", "Bad JSON");
+                }
+            }
+        }
+    }
 
 
+    private class resolutionHelper
+    {
+        int width;
+        int height;
+        HttpPost httppost;
 
+        resolutionHelper(int width, int height, HttpPost httppost)
+        {
+            this.width = width;
+            this.height = height;
+            this.httppost = httppost;
+        }
+    }
+
+    private class processJSONresolution extends AsyncTask<HttpPost, Void, ArrayList<String>>
+    {
+        int width =  0;
+        int height = 0;
+        String resolution = "";
+        HttpPost httppost;
+
+        @Override
+        protected void onPreExecute()
+        {
+
+        }
+
+        @Override
+        protected ArrayList<String> doInBackground(HttpPost... params) {
+            this.httppost = params[0];
+
+            ArrayList<String> responses = new ArrayList<String>();
+
+            responses.add(getJSONResponse(params[0]));
+            responses.add(getJSONResponse(params[1]));
+
+
+            return responses;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<String> resultRows) {
+            for(String result : resultRows) {
+                if (result.toUpperCase().contains("FORBIDDEN")) {
+                    Toast.makeText(currentActivity, "Auth failed!", Toast.LENGTH_LONG).show();
+                } else {
+                    try {
+                        JSONObject res = new JSONObject(result);
+                        Log.d("SYNCHRONIZE", res.toString());
+
+                        if(res.get("option").toString().equals("width"))
+                        {
+                            this.width = Integer.parseInt(res.get("value").toString());
+                        }
+                        else if(res.get("option").toString().equals("height"))
+                        {
+                            this.height = Integer.parseInt(res.get("value").toString());
+                        }
+                    } catch (JSONException e) {
+                        Log.d("ChromoServ Error", "Bad JSON");
+                    }
+                }
+            }
+
+            if(this.width!= 0 && this.height !=0)
+            {
+                this.resolution = this.width + "x" + this.height;
+                Log.d("RESOLUTION", resolution);
+                setSharedPrefInfo(PROPERTY_RESOLUTION_KEY, this.resolution);
+            }
+        }
     }
 
     //standard post request
-    private class processPostRequest extends AsyncTask<HttpPost, Void, String>
+    private class processRegistration extends AsyncTask<HttpPost, Void, String>
     {
         Payload p;
 
@@ -313,10 +598,16 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
                     uniqueToken = res.getString("token");
                     deviceID = res.getString("device_id");
                     p.setResult(true);
-                    storeCredentials(context, uniqueToken, targetURLroot, deviceID);
+
+                    //Store Credentials
+                    Log.d("Credentials", "Token and Target now stored for later use");
+                    setSharedPrefInfo(PROPERTY_TARGET, targetURLroot);
+                    setSharedPrefInfo(PROPERTY_TOKEN, uniqueToken);
+                    setSharedPrefInfo(PROPERTY_DEVICE_ID, deviceID);
+                    setSharedPrefInfo(PROPERTY_NOTIFICATIONS_REGISTERED, false);
+
+                    //Success Toast Message
                     Toast.makeText(currentActivity, "Registration Success!", Toast.LENGTH_LONG).show();
-                    //Register Push Notifications on Registration Success
-                    registerPushNotifcations();
 
                 } catch (JSONException e) {
                     Log.d("ChromoServ Error", "Bad JSON");
@@ -401,12 +692,13 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
 
     /**
      * Registers the application with GCM servers asynchronously.
-     * <p>
      * Stores the registration ID and the app versionCode in the application's
      * shared preferences.
      */
     private void GCMregisterInBackground() {
         new AsyncTask<Void, Void, String>() {
+
+
             @Override
             protected void onPreExecute()
             {
@@ -430,12 +722,11 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
                     regid = gcm.register(SENDER_ID);
                     msg = "Device registered, registration ID=" + regid;
                     storeRegistrationId(context, regid);
+
+
                 } catch (IOException ex) {
                     msg = "Error :" + ex.getMessage();
-                    // If there is an error, don't just keep trying to register.
-                    // Require the user to click a button again, or perform
-                    // exponential back-off.
-                }
+                 }
                 return msg;
             }
 
@@ -457,8 +748,8 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
         params.put("token", getSharedPrefInfoString(PROPERTY_TOKEN, getSettingsPreferences(this.context)));
         return new JSONObject(params);
     }
-    public JSONObject prepareSecureJSONAuth()
-    {
+
+    public JSONObject prepareSecureJSONAuth() {
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("id", getSharedPrefInfoString(PROPERTY_DEVICE_ID, getSettingsPreferences(this.context)));
         params.put("token", getSharedPrefInfoString(PROPERTY_TOKEN, getSettingsPreferences(this.context)));
@@ -507,33 +798,24 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
 
 
 
-    /**
-     * Stores the registration ID and the app versionCode in the application's
-     * {@code SharedPreferences}.
-     *
-     * @param context application's context.
-     * @param regId registration ID
-     */
+    //Store Registration ID
     private void storeRegistrationId(Context context, String regId) {
         final SharedPreferences prefs = getGcmPreferences(context);
         int appVersion = getAppVersion(context);
-        Log.i(TAG, "Saving regId on app version " + appVersion);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PROPERTY_REG_ID, regId);
-        editor.putInt(PROPERTY_APP_VERSION, appVersion);
-        editor.commit();
+        Log.d(TAG, "Saving regId on app version " + appVersion);
+
+        this.setSharedPrefInfo(PROPERTY_REG_ID, regId, prefs);
+        this.setSharedPrefInfo(PROPERTY_APP_VERSION, appVersion, prefs);
+        this.setSharedPrefInfo(PROPERTY_NOTIFICATIONS_REGISTERED, true);
     }
 
-    private void storeCredentials(Context context, String token, String target, String deviceID)
+    //Initalize Default Preferences on Registration
+    private void initPreferences()
     {
-        final SharedPreferences prefs = getSettingsPreferences(context);
-        Log.d("Credentials", "Token and Target now stored for later use");
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PROPERTY_TOKEN, token);
-        editor.putString(PROPERTY_TARGET, target);
-        editor.putString(PROPERTY_DEVICE_ID, deviceID);
-        editor.commit();
-
+        this.setSharedPrefInfo(PROPERTY_IS_REGISTERED, false);
+        this.setSharedPrefInfo(PROPERTY_NOTIFICATIONS_ENABLED, false);
+        this.setSharedPrefInfo(PROPERTY_NOTIFICATIONS_REGISTERED, false);
+        this.setSharedPrefInfo(PROPERTY_PANEL_NUM, 10);
     }
 
     //Get SharedPreferences Value
@@ -555,8 +837,50 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
         if (!result) {Log.i(TAG, sharedPrefName +" not found.");}
         return result;
     }
+    private String getSharedPrefInfoString(String sharedPrefName)
+    {
+        SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
+        String result = sharedPref.getString(sharedPrefName, "");
+        if (result.isEmpty()) {Log.i(TAG, sharedPrefName +" not found.");}
+        return result;
+    }
+    private Integer getSharedPrefInfoInteger(String sharedPrefName)
+    {
+        SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
+        Integer result = sharedPref.getInt(sharedPrefName, 0);
+        if (result == 0) {Log.i(TAG, sharedPrefName +" not found.");}
+        return result;
+    }
+    private Boolean getSharedPrefInfoBoolean(String sharedPrefName)
+    {
+        SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
+        Boolean result = sharedPref.getBoolean(sharedPrefName, false);
+        if (!result) {Log.i(TAG, sharedPrefName +" not found.");}
+        return result;
+    }
 
     //Set SharedPreferences Value
+    private void setSharedPrefInfo(String sharedPrefName, String sharedPrefValue)
+    {
+        SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(sharedPrefName, sharedPrefValue);
+        editor.commit();
+    }
+    private void setSharedPrefInfo(String sharedPrefName, Integer sharedPrefValue)
+    {
+        SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putInt(sharedPrefName, sharedPrefValue);
+        editor.commit();
+    }
+    private void setSharedPrefInfo(String sharedPrefName, Boolean sharedPrefValue)
+    {
+        SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(sharedPrefName, sharedPrefValue);
+        editor.commit();
+    }
     private void setSharedPrefInfo(String sharedPrefName, String sharedPrefValue, SharedPreferences sharedPref)
     {
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -577,9 +901,7 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
     }
 
 
-    /**
-     * @return Application's version code from the {@code PackageManager}.
-     */
+    //Get Application's Version Number
     private static int getAppVersion(Context context) {
         try {
             PackageInfo packageInfo = context.getPackageManager()
@@ -591,31 +913,39 @@ public class ChromoServer implements SharedPreferences.OnSharedPreferenceChangeL
         }
     }
 
-    /**
-     * @return Application's {@code SharedPreferences}.
-     */
-    private SharedPreferences getGcmPreferences(Context context) {
-        // This sample app persists the registration ID in shared preferences, but
-        // how you store the regID in your app is up to you.
-        return context.getSharedPreferences(MainActivity.class.getSimpleName(),
-                Context.MODE_PRIVATE);
-    }
+    //Get GCM Preferences
+    private SharedPreferences getGcmPreferences(Context context)
+    {return context.getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);}
 
+    //Get Settings Preferences
     private SharedPreferences getSettingsPreferences(Context context)
+    {return PreferenceManager.getDefaultSharedPreferences(context);}
+
+    public String getTargetURL ()
+    {return getSharedPrefInfoString(PROPERTY_TARGET, getSettingsPreferences(context));}
+    public String getDeviceID()
+    {return getSharedPrefInfoString(PROPERTY_DEVICE_ID, getSettingsPreferences(context));}
+    public String getUniqueToken()
+    {return getSharedPrefInfoString(PROPERTY_TOKEN, getSettingsPreferences(context));}
+    public Integer getPanelNum()
     {
-        return PreferenceManager.getDefaultSharedPreferences(context);
-    }
+            SharedPreferences sharedPref = this.getSettingsPreferences(this.context);
+            String paneNumString =sharedPref.getString(PROPERTY_PANEL_NUM, "10");
+            String intPattern ="^[+-]?\\d+$";
 
-    public String getTargetURL () {
-        return getSharedPrefInfoString(PROPERTY_TARGET,getSettingsPreferences(context));
-    }
+            Pattern r = Pattern.compile(intPattern);
 
-    public String getDeviceID(){
-        return getSharedPrefInfo(context, PROPERTY_DEVICE_ID, getSettingsPreferences(context));
-    }
+            Matcher m = r.matcher(paneNumString);
 
-    public String getUniqueToken(){
-        return getSharedPrefInfo(context, PROPERTY_TOKEN, getSettingsPreferences(context));
+            if(m.find())
+            {
+                return Integer.parseInt(paneNumString);
+            }
+            else
+            {
+                return 10;
+            }
+
     }
 }
 

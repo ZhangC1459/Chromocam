@@ -50,8 +50,8 @@
     <string name="btnPrev">Prev</string>
 
     <string name="app_settings_title">App Settings</string>
-    <string name="panel_num_title">Panels</string>
-    <string name="panel_num_summary">Number of panels to be displayed per page</string>
-    <string name="panel_num_dialogTitle">Enter the amount of panels to be displayed in the Event and Archive list view</string>
+    <string name="panel_num_title">Events</string>
+    <string name="panel_num_summary">Number of events to be displayed per page</string>
+    <string name="panel_num_dialogTitle">Enter the amount of events to be displayed in list view</string>
 
 </resources>

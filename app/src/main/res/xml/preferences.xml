@@ -30,21 +30,18 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/notification_settings_title">
+    <PreferenceCategory android:title="@string/notifications_enabled_title">
         <SwitchPreference
             android:key="notifications_enabled"
             android:title="@string/notifications_enabled_subtitle"
-            android:summary="@string/notifications_enabled_summary"
-            android:defaultValue="@bool/notifications_enabled_default"
-            />
+            android:summary="@string/notifications_enabled_summary" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/login_settings_title">
         <SwitchPreference
             android:key="login_settings"
             android:title="@string/login_settings_subtitle"
-            android:summary="@string/login_settings_summary"
-            android:defaultValue="@bool/login_settings_default"/>
+            android:summary="@string/login_settings_summary" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/app_settings_title">
@@ -52,8 +49,7 @@
             android:title="@string/panel_num_title"
             android:key="panel_num"
             android:summary="@string/panel_num_summary"
-            android:dialogTitle="@string/panel_num_dialogTitle"
-            android:defaultValue="@integer/panel_num_default" />
+            android:dialogTitle="@string/panel_num_dialogTitle" />
     </PreferenceCategory>
     
 </PreferenceScreen>
