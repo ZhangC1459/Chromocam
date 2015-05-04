@@ -186,6 +186,8 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         actionBar.addTab(events);
         actionBar.addTab(archives);
         actionBar.addTab(livestream);
+
+        this.chromoServer.syncServerCurrentSettings();
     }
 
     /**
@@ -236,6 +238,7 @@ public class MainActivity extends Activity implements ChromoComplete, EventListT
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             //openSettings();
+            this.chromoServer.syncServerCurrentSettings();
             this.actionBar.hide();
             getFragmentManager().beginTransaction().replace(R.id.fragment_container, new PrefsFragment()).addToBackStack(this.topLevelName).commit();
             Log.d("PREFERENCES-DEBUG", "Preferences have been selected");

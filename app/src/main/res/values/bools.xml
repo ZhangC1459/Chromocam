@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <bool name="login_settings_default">false</bool>
-    <bool name="notifications_enabled_default">false</bool>
-</resources>

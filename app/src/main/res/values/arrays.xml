@@ -7,9 +7,9 @@
     </string-array>
 
     <string-array name="resolution_entryvalues">
-        <item>320 by 240</item>
-        <item>640 by 480</item>
-        <item>960 by 720</item>
+        <item>320x240</item>
+        <item>640x480</item>
+        <item>960x720</item>
     </string-array>
 
 </resources>
